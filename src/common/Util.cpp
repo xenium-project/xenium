@@ -299,14 +299,14 @@ namespace Tools
 
     std::string getDefaultDataDirectory()
     {
-        // Windows < Vista: C:\Documents and Settings\Username\Application Data\CRYPTONOTE_NAME
-        // Windows >= Vista: C:\Users\Username\AppData\Roaming\CRYPTONOTE_NAME
-        // Mac: ~/Library/Application Support/CRYPTONOTE_NAME
-        // Unix: ~/.CRYPTONOTE_NAME
+        // Windows < Vista: C:\Documents and Settings\Username\Application Data\DATADIR_NAME
+        // Windows >= Vista: C:\Users\Username\AppData\Roaming\DATADIR_NAME
+        // Mac: ~/Library/Application Support/DATADIR_NAME
+        // Unix: ~/.DATADIR_NAME
         std::string config_folder;
 #ifdef WIN32
         // Windows
-        config_folder = get_special_folder_path(CSIDL_APPDATA, true) + "/" + CryptoNote::CRYPTONOTE_NAME;
+        config_folder = get_special_folder_path(CSIDL_APPDATA, true) + "/" + CryptoNote::DATADIR_NAME;
 #else
         std::string pathRet;
         char *pszHome = getenv("HOME");
@@ -317,10 +317,10 @@ namespace Tools
 #ifdef MAC_OSX
         // Mac
         pathRet /= "Library/Application Support";
-        config_folder = (pathRet + "/" + CryptoNote::CRYPTONOTE_NAME);
+        config_folder = (pathRet + "/" + CryptoNote::DATADIR_NAME);
 #else
         // Unix
-        config_folder = (pathRet + "/." + CryptoNote::CRYPTONOTE_NAME);
+        config_folder = (pathRet + "/." + CryptoNote::DATADIR_NAME);
 #endif
 #endif
 

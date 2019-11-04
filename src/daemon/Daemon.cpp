@@ -2,6 +2,7 @@
 // Copyright (c) 2018, The Karai Developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 // Copyright (c) 2019, The CyprusCoin Developers
+// Copyright (c) 2019, The Xenium Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -48,14 +49,41 @@ using namespace CryptoNote;
 using namespace Logging;
 using namespace DaemonConfig;
 
-void print_genesis_tx_hex(const bool blockExplorerMode, std::shared_ptr<LoggerManager> logManager)
+void print_genesis_tx_hex(const std::vector<std::string> rewardAddresses, const bool blockExplorerMode, std::shared_ptr<LoggerManager> logManager)
 {
+    std::vector<CryptoNote::AccountPublicAddress> rewardTargets;
+
     CryptoNote::CurrencyBuilder currencyBuilder(logManager);
     currencyBuilder.isBlockexplorer(blockExplorerMode);
 
     CryptoNote::Currency currency = currencyBuilder.currency();
 
-    const auto transaction = CryptoNote::CurrencyBuilder(logManager).generateGenesisTransaction();
+    for (const auto& rewardAddress : rewardAddresses)
+    {
+        CryptoNote::AccountPublicAddress address;
+        if (!currency.parseAccountAddressString(rewardAddress, address))
+        {
+            std::cout << "Failed to parse genesis reward address: " << rewardAddress << std::endl;
+            return;
+        }
+        rewardTargets.emplace_back(std::move(address));
+    }
+
+    CryptoNote::Transaction transaction;
+
+    if (rewardTargets.empty())
+    {
+        if (CryptoNote::parameters::GENESIS_BLOCK_REWARD > 0)
+        {
+            std::cout << "Error: Genesis Block Reward Addresses are not defined" << std::endl;
+            return;
+        }
+        transaction = CryptoNote::CurrencyBuilder(logManager).generateGenesisTransaction();
+    }
+    else
+    {
+        transaction = CryptoNote::CurrencyBuilder(logManager).generateGenesisTransaction(rewardTargets);
+    }
 
     std::string transactionHex = Common::toHex(CryptoNote::toBinaryArray(transaction));
     std::cout << getProjectCLIHeader() << std::endl
@@ -104,7 +132,7 @@ int main(int argc, char *argv[])
 
     if (config.printGenesisTx) // Do we weant to generate the Genesis Tx?
     {
-        print_genesis_tx_hex(false, logManager);
+        print_genesis_tx_hex(config.genesisAwardAddresses, false, logManager);
         exit(0);
     }
 
@@ -181,7 +209,8 @@ int main(int argc, char *argv[])
             config.dataDirectory + "/" + CryptoNote::parameters::CRYPTONOTE_BLOCKS_FILENAME,
             config.dataDirectory + "/" + CryptoNote::parameters::CRYPTONOTE_BLOCKINDEXES_FILENAME,
             config.dataDirectory + "/" + CryptoNote::parameters::P2P_NET_DATA_FILENAME,
-            config.dataDirectory + "/DB"};
+            config.dataDirectory + "/DB"
+        };
 
         for (const auto path : removablePaths)
         {
@@ -236,7 +265,7 @@ int main(int argc, char *argv[])
         // configure logging
         logManager->configure(buildLoggerConfiguration(cfgLogLevel, cfgLogFile.string()));
 
-        logger(INFO, BRIGHT_GREEN) << getProjectCLIHeader() << std::endl;
+        logger(INFO, BRIGHT_MAGENTA) << getProjectCLIHeader() << std::endl;
 
         logger(INFO) << "Program Working Directory: " << cwdPath;
 

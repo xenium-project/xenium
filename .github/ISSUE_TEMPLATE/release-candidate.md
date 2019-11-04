@@ -5,22 +5,25 @@ about: The purpose of this template is to provide a reproducible testing process
 
 ---
 
-# TurtleCoin <!-- Insert semver # including build number here --> Release Candidate Test Log
+# Xenium <!-- Insert semver # including build number here --> Release Candidate Test Log
 
 Build from: <!-- link to release candidate branch -->
 
 Binaries for Testing:
-  - Windows: <!-- link to release candidate binaries for this platform -->
-  - Linux: <!-- link to release candidate binaries for this platform -->
-  - MacOS: <!-- link to release candidate binaries for this platform -->
-  - AARCH64: <!-- link to release candidate binaries for this platform -->
 
-### Project
+- Windows: <!-- link to release candidate binaries for this platform -->
+- Linux: <!-- link to release candidate binaries for this platform -->
+- MacOS: <!-- link to release candidate binaries for this platform -->
+- AARCH64: <!-- link to release candidate binaries for this platform -->
+
+## Project
+
 - [ ] Currently Passing Travis & AppVeyor build tests
 - [ ] `Version.h.in` updated to correct semver value
 - [ ] Release Notes Prepared (<!-- link to proposed copy of release notes -->)
 
-### TurtleCoind Tests
+## XeniumDaemon Tests
+
 - Daemon connects to local DB
   - [ ] Windows
   - [ ] Linux
@@ -57,8 +60,9 @@ Binaries for Testing:
   - [ ] Windows
   - [ ] Linux
   - [ ] MacOS
- 
-### ZedWallet Tests
+
+## XeniumWallet Tests
+
 - Connect to local daemon
   - [ ] Windows
   - [ ] Linux
@@ -100,7 +104,8 @@ Binaries for Testing:
   - [ ] Linux
   - [ ] MacOS
 
-### Turtle-Service Tests
+### XeniumService-deprecated Tests
+
 - Connect to local daemon
   - [ ] Windows
   - [ ] Linux

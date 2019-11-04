@@ -368,7 +368,7 @@ namespace CryptoNote
                     logLevel = Logging::DEBUGGING;
                 }
             }
-            logger(logLevel, Logging::BRIGHT_GREEN) << context << ss.str();
+            logger(logLevel, Logging::BRIGHT_MAGENTA) << context << ss.str();
 
             logger(Logging::DEBUGGING) << "Remote top block height: " << hshd.current_height << ", id: " << hshd.top_id;
             // let the socket to send response to handshake, but request callback, to let send request data after
@@ -680,7 +680,7 @@ namespace CryptoNote
             }
         }
 
-        logger(DEBUGGING, BRIGHT_GREEN) << "Local blockchain updated, new index = " << m_core.getTopBlockIndex();
+        logger(DEBUGGING, BRIGHT_MAGENTA) << "Local blockchain updated, new index = " << m_core.getTopBlockIndex();
         if (!m_stop && context.m_state == CryptoNoteConnectionContext::state_synchronizing)
         {
             request_missing_objects(context, true);
@@ -973,7 +973,7 @@ namespace CryptoNote
             requestMissingPoolTransactions(context);
 
             context.m_state = CryptoNoteConnectionContext::state_normal;
-            logger(Logging::INFO, Logging::BRIGHT_GREEN)
+            logger(Logging::INFO, Logging::BRIGHT_MAGENTA)
                 << context << "Successfully synchronized with the " << CryptoNote::CRYPTONOTE_NAME << " Network.";
             on_connection_synchronized();
         }
@@ -986,22 +986,13 @@ namespace CryptoNote
         if (m_synchronized.compare_exchange_strong(val_expected, true))
         {
             logger(Logging::INFO) << ENDL;
-            logger(INFO, BRIGHT_MAGENTA) << "===[ " + std::string(CryptoNote::CRYPTONOTE_NAME)
-                                                + " Tip! ]============================="
-                                         << ENDL;
-            logger(INFO, WHITE) << " Always exit " + WalletConfig::daemonName + " and " + WalletConfig::walletName
-                                       + " with the \"exit\" command to preserve your chain and wallet data."
-                                << ENDL;
-            logger(INFO, WHITE) << " Use the \"help\" command to see a list of available commands." << ENDL;
-            logger(INFO, WHITE) << " Use the \"backup\" command in " + WalletConfig::walletName
-                                       + " to display your keys/seed for restoring a corrupted wallet."
-                                << ENDL;
-            logger(INFO, WHITE) << " If you need more assistance, you can contact us for support at "
-                                       + WalletConfig::contactLink
-                                << ENDL;
-            logger(INFO, BRIGHT_MAGENTA) << "===================================================" << ENDL << ENDL;
+            logger(INFO, BRIGHT_MAGENTA) << "===============[ " << std::string(CryptoNote::CRYPTONOTE_NAME) << " Tip! ]================" << ENDL;
+            logger(INFO, BRIGHT_CYAN)    << " Always exit " << WalletConfig::daemonName << " with the \"exit\" command." << ENDL;
+            logger(INFO, BRIGHT_CYAN)    << " Use \"?\" to see a list of available commands."               << ENDL;
+            logger(INFO, BRIGHT_CYAN)    << " Contact us at " << WalletConfig::contactLink                  << ENDL;
+            logger(INFO, BRIGHT_MAGENTA) << "==================================================="           << ENDL;
 
-            logger(INFO, BRIGHT_GREEN) << asciiArt << ENDL;
+            logger(INFO, BRIGHT_MAGENTA) << asciiArt << ENDL;
 
             m_observerManager.notify(&ICryptoNoteProtocolObserver::blockchainSynchronized, m_core.getTopBlockIndex());
         }
@@ -1255,7 +1246,7 @@ namespace CryptoNote
             if (peerHeight > m_blockchainHeight)
             {
                 m_blockchainHeight = peerHeight;
-                logger(Logging::INFO, Logging::BRIGHT_GREEN) << "New Top Block Detected: " << peerHeight;
+                logger(Logging::INFO, Logging::BRIGHT_MAGENTA) << "New Top Block Detected: " << peerHeight;
             }
         }
 

@@ -182,7 +182,7 @@ namespace CryptoNote
                         strftime(upgradeTimeStr, 40, "%H:%M:%S %Y.%m.%d", upgradeTime);
                         CryptoNote::CachedBlock cachedBlock(m_blockchain.back().bl);
 
-                        logger(Logging::TRACE, Logging::BRIGHT_GREEN)
+                        logger(Logging::TRACE, Logging::BRIGHT_MAGENTA)
                             << "###### UPGRADE is going to happen after block index " << upgradeHeight() << " at about "
                             << upgradeTimeStr << " (in " << Common::timeIntervalToString(interval)
                             << ")! Current last block index " << (m_blockchain.size() - 1) << ", hash "
@@ -193,7 +193,7 @@ namespace CryptoNote
                 {
                     assert(m_blockchain.back().bl.majorVersion == m_targetVersion - 1);
 
-                    logger(Logging::TRACE, Logging::BRIGHT_GREEN)
+                    logger(Logging::TRACE, Logging::BRIGHT_MAGENTA)
                         << "###### UPGRADE has happened! Starting from block index " << (upgradeHeight() + 1)
                         << " blocks with major version below " << static_cast<int>(m_targetVersion)
                         << " will be rejected!";
@@ -209,7 +209,7 @@ namespace CryptoNote
                 if (isVotingComplete(lastBlockHeight))
                 {
                     m_votingCompleteHeight = lastBlockHeight;
-                    logger(Logging::TRACE, Logging::BRIGHT_GREEN)
+                    logger(Logging::TRACE, Logging::BRIGHT_MAGENTA)
                         << "###### UPGRADE voting complete at block index " << m_votingCompleteHeight
                         << "! UPGRADE is going to happen after block index " << upgradeHeight() << "!";
                 }

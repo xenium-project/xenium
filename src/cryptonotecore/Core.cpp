@@ -2026,7 +2026,7 @@ namespace CryptoNote
                         continue;
                     }
 
-                    logger(Logging::DEBUGGING, Logging::BRIGHT_GREEN)
+                    logger(Logging::DEBUGGING, Logging::BRIGHT_MAGENTA)
                         << "Setting extra for block: " << b.baseTransaction.extra.size() << ", try_count=" << tryCount;
                 }
             }

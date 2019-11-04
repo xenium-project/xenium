@@ -18,7 +18,7 @@
 #include <serialization/BinaryOutputStreamSerializer.h>
 #include <serialization/CryptoNoteSerialization.h>
 #include <vector>
-#include <zedwallet/Types.h>
+#include <XeniumWallet-deprecated/Types.h>
 
 namespace Common
 {

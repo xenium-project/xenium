@@ -65,7 +65,7 @@ jobs:
         if: matrix.build_name != 'aarch64'
         run: |
           cd build/src
-          ./cryptotest
+          ./XeniumCryptotest
 
   # Mac builds on Mojave VM
   macos_build:
@@ -100,7 +100,7 @@ jobs:
       - name: Test Crypto
         run: |
           cd build/src
-          ./cryptotest
+          ./XeniumCryptotest
 
   # Windows Builds on Windows Server 2019
   windows_build:
@@ -125,11 +125,11 @@ jobs:
       - name: Build
         run: |
           cd build
-          MSBuild TurtleCoin.sln /p:Configuration=Release /m
+          MSBuild Xenium.sln /p:Configuration=Release /m
       
       # Test the crypto
       - name: Test Crypto
         shell: bash
         run: |
           cd build/src/Release
-          ./cryptotest.exe
+          ./XeniumCryptotest.exe

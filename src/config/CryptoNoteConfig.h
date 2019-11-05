@@ -56,14 +56,14 @@ namespace CryptoNote
         Total: 54,043,420 XNU
         */
 
-        const char     GENESIS_COINBASE_TX_HEX[] = "012801ff0001c0b19f0502d3c860d7182a708ab0d0a5fac961b34c4bd8c67a771826f4a2be8d6b935925b32101d92da4fded04f4ac83c9c34f6e9c579c94424bece4183a9f84c682ce00f41118";
+        const char     GENESIS_COINBASE_TX_HEX[] = "012801ff0001e0caf4a9c90102d750107e730413fced5add3186113040a86cdc7c4d051f7e3586a5e0927df72f2101b537f9e4e40bb59d96c874d711ea34b8816d834e497fa8bd71ff9bd225927a16";
 
         static_assert(sizeof(GENESIS_COINBASE_TX_HEX) / sizeof(*GENESIS_COINBASE_TX_HEX) != 1, "GENESIS_COINBASE_TX_HEX must not be empty.");
 
         /* This is the unix timestamp of the first "mined" block (technically block 2, not the genesis block)
            You can get this value by doing "print_block 2" in TurtleCoind. It is used to know what timestamp
            to import from when the block height cannot be found in the node or the node is offline. */
-        const uint64_t GENESIS_BLOCK_TIMESTAMP                           =                                1572772978;
+        const uint64_t GENESIS_BLOCK_TIMESTAMP                           =                                1572909551;
         const size_t   CRYPTONOTE_REWARD_BLOCKS_WINDOW                   =                                       100;
         const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE         =                                   250'000;
         const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2      =                                    50'000;

@@ -986,7 +986,7 @@ namespace CryptoNote
         if (m_synchronized.compare_exchange_strong(val_expected, true))
         {
             logger(Logging::INFO) << ENDL;
-            logger(INFO, BRIGHT_MAGENTA) << "===============[ " << std::string(CryptoNote::CRYPTONOTE_NAME) << " Tip! ]================" << ENDL;
+            logger(INFO, BRIGHT_MAGENTA) << "==================[ " << std::string(CryptoNote::CRYPTONOTE_NAME) << " Tip! ]==================" << ENDL;
             logger(INFO, BRIGHT_CYAN)    << " Always exit " << WalletConfig::daemonName << " with the \"exit\" command." << ENDL;
             logger(INFO, BRIGHT_CYAN)    << " Use \"?\" to see a list of available commands."               << ENDL;
             logger(INFO, BRIGHT_CYAN)    << " Contact us at " << WalletConfig::contactLink                  << ENDL;

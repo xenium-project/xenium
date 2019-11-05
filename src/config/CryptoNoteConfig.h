@@ -63,7 +63,7 @@ namespace CryptoNote
         /* This is the unix timestamp of the first "mined" block (technically block 2, not the genesis block)
            You can get this value by doing "print_block 2" in TurtleCoind. It is used to know what timestamp
            to import from when the block height cannot be found in the node or the node is offline. */
-        const uint64_t GENESIS_BLOCK_TIMESTAMP                           =                                1572909551;
+        const uint64_t GENESIS_BLOCK_TIMESTAMP                           =                                1572942812;
         const size_t   CRYPTONOTE_REWARD_BLOCKS_WINDOW                   =                                       100;
         const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE         =                                   250'000;
         const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2      =                                    50'000;

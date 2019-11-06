@@ -90,8 +90,8 @@ namespace CryptoNote
         const uint32_t MIXIN_LIMITS_V3_HEIGHT            =                          300'000;
 
         const uint64_t DEFAULT_MIXIN_V0                  =                                0;
-        const uint64_t DEFAULT_MIXIN_V1                  =                 MAXIMUM_MIXIN_V1;
-        const uint64_t DEFAULT_MIXIN_V2                  =                 MAXIMUM_MIXIN_V2;
+        const uint64_t DEFAULT_MIXIN_V1                  =                                2;
+        const uint64_t DEFAULT_MIXIN_V2                  =                                3;
         const uint64_t DEFAULT_MIXIN_V3                  =                 MAXIMUM_MIXIN_V3;
 
         const uint64_t DEFAULT_DUST_THRESHOLD            =                     UINT64_C(10);

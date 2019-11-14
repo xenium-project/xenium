@@ -7,5 +7,4 @@
 
 #include <string>
 
-const std::string asciiArt =
-    "\n";
+const std::string asciiArt = "\n";

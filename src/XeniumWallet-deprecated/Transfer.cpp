@@ -400,13 +400,13 @@ void transfer(
             std::cout << WarningMsg("Due to dust inputs, we are unable to ") << WarningMsg("send ")
                       << InformationMsg(formatAmount(unsendable)) << WarningMsg("of your balance.") << std::endl;
 
-            if (!WalletConfig::mixinZeroDisabled || height < WalletConfig::mixinZeroDisabledHeight)
+            if (!WalletConfig::mixinZeroDisabled && height < WalletConfig::mixinZeroDisabledAtHeight)
             {
                 std::cout << "Alternatively, you can set the mixin count to "
-                          << "zero to send it all." << std::endl;
+                    << "zero to send it all." << std::endl;
 
                 if (confirm("Set mixin to 0 so we can send your whole balance? "
-                            "This will compromise privacy."))
+                    "This will compromise privacy."))
                 {
                     mixin = 0;
                     amount = balance - fee - nodeFee;
@@ -472,10 +472,10 @@ BalanceInfo doWeHaveEnoughBalance(
                   << " without issues (includes a network fee of " << InformationMsg(formatAmount(fee)) << " and "
                   << " a node fee of " << InformationMsg(formatAmount(nodeFee)) << ")" << std::endl;
 
-        if (!WalletConfig::mixinZeroDisabled || height < WalletConfig::mixinZeroDisabledHeight)
+        if (!WalletConfig::mixinZeroDisabled && height < WalletConfig::mixinZeroDisabledAtHeight)
         {
             std::cout << "Alternatively, you can sent the mixin "
-                      << "count to 0." << std::endl;
+                << "count to 0." << std::endl;
 
             if (confirm("Set mixin to 0? This will compromise privacy."))
             {
@@ -632,7 +632,7 @@ bool handleTransferError(const std::system_error &e, bool retried, uint32_t heig
             /* If a mixin of zero is allowed, or we are below the
                fork height when it's banned, ask them to resend with
                zero */
-            if (!WalletConfig::mixinZeroDisabled || height < WalletConfig::mixinZeroDisabledHeight)
+            if (!WalletConfig::mixinZeroDisabled && height < WalletConfig::mixinZeroDisabledAtHeight)
             {
                 std::cout << "Alternatively, you can set the mixin "
                           << "count to 0." << std::endl;

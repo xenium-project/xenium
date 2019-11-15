@@ -59,7 +59,7 @@ namespace CryptoNote
         Total:               82,000,000 XNU
         */
 
-        const char     GENESIS_COINBASE_TX_HEX[] = "012801ff0001e0caf4a9c90102d750107e730413fced5add3186113040a86cdc7c4d051f7e3586a5e0927df72f2101b537f9e4e40bb59d96c874d711ea34b8816d834e497fa8bd71ff9bd225927a16";
+        const char     GENESIS_COINBASE_TX_HEX[] = "012801ff000180e8d2bcb10202900f23d30584cab3b020292fe794fc6dfbd318bf2199e48c1cea38e84f6e06f62101c25f95e51ebc98ad51e6841563fb381a801c6e3b919bf9e320561e78210d5a47";
 
         static_assert(sizeof(GENESIS_COINBASE_TX_HEX) / sizeof(*GENESIS_COINBASE_TX_HEX) != 1, "GENESIS_COINBASE_TX_HEX must not be empty.");
 

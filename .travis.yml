@@ -1,4 +1,3 @@
-sudo: false
 language: cpp
 cache:
  ccache: true
@@ -10,10 +9,13 @@ matrix:
 
   # Ubuntu, g++-8
   - os: linux
-    dist: trusty
+    dist: bionic
     compiler: gcc
     addons:
       apt:
+        sources:
+          - sourceline: 'ppa:mhier/libboost-latest'
+          - ubuntu-toolchain-r-test
         packages:
           - libboost-all-dev
           - libssl-dev
@@ -27,10 +29,13 @@ matrix:
 
   # Ubuntu, g++-7
   - os: linux
-    dist: trusty
+    dist: bionic
     compiler: gcc
     addons:
       apt:
+        sources:
+          - sourceline: 'ppa:mhier/libboost-latest'
+          - ubuntu-toolchain-r-test
         packages:
           - libboost-all-dev
           - libssl-dev
@@ -43,7 +48,7 @@ matrix:
 
   # Arm (aarch64) cross compile
   - os: linux
-    dist: trusty
+    dist: bionic
     env:
     - MATRIX_EVAL="CC=aarch64-linux-gnu-gcc && CXX=aarch64-linux-gnu-g++"
     - LABEL="aarch64"

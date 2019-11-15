@@ -278,6 +278,7 @@ namespace CryptoNote
         "142.93.239.206:32768", // MunchieHigh420 - 1
           "94.211.137.5:32768", // MunchieHigh420 - 2
           "94.214.85.66:32768", // Gabcraftia
-         "85.214.241.85:32768"  // Lein Ad
+         "85.214.241.85:32768", // Lein Ad
+        "46.251.239.146:32768"  // Waterdev | Valentin
     };
 } // namespace CryptoNote

@@ -1,0 +1,113 @@
+sudo: false
+language: cpp
+cache:
+ ccache: true
+ directories:
+    - /home/travis/toolchain
+
+matrix:
+  include:
+
+  # Ubuntu, g++-8
+  - os: linux
+    dist: trusty
+    compiler: gcc
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+          - libboost1.55-all-dev
+          - libssl-dev
+          - g++-8
+          - gcc-8
+    env:
+    - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
+    - LABEL="linux"
+    - _DEPLOYABLE="true"
+    - STRIP="strip"
+
+  # Ubuntu, g++-7
+  - os: linux
+    dist: trusty
+    compiler: gcc
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+          - libboost1.55-all-dev
+          - libssl-dev
+          - g++-7
+          - gcc-7
+    env:
+    - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+    - LABEL="linux-g++-7"
+    - STRIP="strip"
+
+  # Ubuntu, clang-6
+  - os: linux
+    dist: trusty
+    compiler: clang
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-6.0
+        packages:
+          - libboost1.55-all-dev
+          - libssl-dev
+          - clang-6.0
+          - libstdc++-7-dev
+    env:
+    - MATRIX_EVAL="CC=clang-6.0 && CXX=clang++-6.0"
+    - LABEL="linux-clang-6"
+    - STRIP="strip"
+
+  # Arm (aarch64) cross compile
+  - os: linux
+    dist: trusty
+    env:
+    - MATRIX_EVAL="CC=aarch64-linux-gnu-gcc && CXX=aarch64-linux-gnu-g++"
+    - LABEL="aarch64"
+    - _DEPLOYABLE="true"
+    - STRIP="aarch64-linux-gnu-strip"
+
+before_install:
+- eval $MATRIX_EVAL
+
+script:
+- eval $MATRIX_EVAL
+# If we're cross compiling aarch64, make sure our build enivornment is setup
+# we do this in the script stage because this happens after the repo is cloned
+- if [[ "$LABEL" == "aarch64" ]]; then source scripts/prep-aarch64.sh ; fi
+- mkdir build && cd build
+- cmake -DARCH=default -DCMAKE_BUILD_TYPE=Release -DSTATIC=true ..
+- make -j2
+- if [[ "$LABEL" != "aarch64" ]]; then ./src/cryptotest ; fi
+
+before_deploy:
+- if [[ "${TRAVIS_TAG}" == "" ]]; then export TRAVIS_TAG=${TRAVIS_COMMIT} ; fi
+- cd src
+- ${STRIP} Xenium*
+- rm -rf Xenium-${TRAVIS_TAG}
+- mkdir Xenium-${TRAVIS_TAG}
+- cp Xenium* Xenium-${TRAVIS_TAG}/
+- cp ../../LICENSE Xenium-${TRAVIS_TAG}/
+- tar cvfz Xenium-${TRAVIS_TAG}-${LABEL}.tar.gz Xenium-${TRAVIS_TAG}/
+- rm -rf builds
+- mkdir builds
+- cp Xenium-${TRAVIS_TAG}-${LABEL}.tar.gz builds
+- cd ..
+
+deploy:
+  - provider: releases
+    api_key:
+      secure: XyM7qAnX9Slm4bX7WYPOnWGRuXfuwc7wnJHb7wN4WGy+GefXm3xSFoNIZdmTY1XnJ2HpIAXuuHL2aey8KKt+gEXbhp882z6m9jZWOdog3cjObdRCsOuETNE0rbXasDvntdhm1Jn7PM+mkN6O9GoqRVaEnyyIwCGEFA7Cc/d2KgtqpTu0NB6nIPZbTgJnudHDQYEWl0kwA1UjkYrEIRlAOFTaRHBUsUHPTFW8758mgerYitLm27BNJTbo74lYe65iExtguKFN/VRVXDl08/2i3gnAxzWJ2K0qUZu7PD8ePd+2UC1wwE2Dc1uiTOmhDgVeuQO6k0tuipjIA+dh5r7A8/YPyOX4zoZ4ac+g1mWSRO1VS/WQ2Uvq2XU848KACLJ+ky3kHWZKowTSl/v3+3rU4c6kqYJHShkH5XlFp503yRqlaqOow4ogz020eIEHEFCgwLhNxZSEUzKP4rEZPpboZyNJbW7lL92UxMZDZm1zKMvnrY5zi2HltYzIQyOjDvmXUxQD8blz1C66lqfBc6mApjDRZVLUcfTT4WIGAWc6opTYJAJpCg34zGAQgXoFaOG0cH3ApsREmBd1dg9d8cJscedy9qZjn3HsmibmdRiGctB5o08JrjfM5sZVk620iKFgovis7q7XfIKb3rQdSfsiRwsfZEwhE2lvY3bf9B0VMrU=
+    file:
+      - Xenium-${TRAVIS_TAG}-${LABEL}.tar.gz
+    skip_cleanup: true
+    on:
+      repo: xenium-project/xenium
+      tags: true
+      condition: "$_DEPLOYABLE = true"

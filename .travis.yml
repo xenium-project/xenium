@@ -45,25 +45,6 @@ matrix:
     - LABEL="linux-g++-7"
     - STRIP="strip"
 
-  # Ubuntu, clang-6
-  - os: linux
-    dist: trusty
-    compiler: clang
-    addons:
-      apt:
-        sources:
-        - ubuntu-toolchain-r-test
-        - llvm-toolchain-trusty-6.0
-        packages:
-          - libboost1.55-all-dev
-          - libssl-dev
-          - clang-6.0
-          - libstdc++-7-dev
-    env:
-    - MATRIX_EVAL="CC=clang-6.0 && CXX=clang++-6.0"
-    - LABEL="linux-clang-6"
-    - STRIP="strip"
-
   # Arm (aarch64) cross compile
   - os: linux
     dist: trusty

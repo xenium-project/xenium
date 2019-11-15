@@ -46,17 +46,17 @@ namespace CryptoNote
         const unsigned EMISSION_SPEED_FACTOR                    =                               25;
         static_assert(EMISSION_SPEED_FACTOR <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED_FACTOR");
 
-        const uint64_t GENESIS_BLOCK_REWARD                     =         UINT64_C(81'000'000'000);
+        const uint64_t GENESIS_BLOCK_REWARD                     =         UINT64_C(82'000'000'000);
         /*
         PREMINE
         =======
 
         TurtleGold swap:     ‭54,041,420 XNU
-        Xenium swap:         26,938,580 XNU
+        Xenium swap:         27,938,580 XNU
         TipBot Faucet funds:     10,000 XNU
         Airdrops:                10,000 XNU
         ====================================
-        Total:               81,000,000 XNU
+        Total:               82,000,000 XNU
         */
 
         const char     GENESIS_COINBASE_TX_HEX[] = "012801ff0001e0caf4a9c90102d750107e730413fced5add3186113040a86cdc7c4d051f7e3586a5e0927df72f2101b537f9e4e40bb59d96c874d711ea34b8816d834e497fa8bd71ff9bd225927a16";

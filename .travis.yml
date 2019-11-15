@@ -14,8 +14,6 @@ matrix:
     compiler: gcc
     addons:
       apt:
-        sources:
-        - ubuntu-toolchain-r-test
         packages:
           - libboost-all-dev
           - libssl-dev
@@ -33,8 +31,6 @@ matrix:
     compiler: gcc
     addons:
       apt:
-        sources:
-        - ubuntu-toolchain-r-test
         packages:
           - libboost-all-dev
           - libssl-dev

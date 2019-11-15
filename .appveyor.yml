@@ -43,7 +43,7 @@ artifacts:
 deploy:
   - provider: GitHub
     auth_token:
-      secure: KFrN1rc9FJN3BEoX99whHEuK5iPHHLmDcZ1Ac7tgT9oR6AxyjL0B+XMQu4wqo+fK
+      secure: 0uekag1omrW5tY0pMftRq2qcZXruBi68Y+m7qi5GhAIQ0420DslI8qPswrcc8PE4
     artifact: XeniumRelease
     draft: false
     prerelease: false

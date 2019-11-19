@@ -210,6 +210,9 @@ enum ErrorCode
 
     /* Not on ed25519 curve */
     INVALID_PRIVATE_KEY = 52,
+
+    /* Extra data for transaction is not a valid hexadecimal string */
+    INVALID_EXTRA_DATA = 53,
 };
 
 class Error

@@ -10,6 +10,7 @@
 #include <config/WalletConfig.h>
 #include <common/Varint.h>
 #include <errors/ValidateParameters.h>
+#include <logger/Logger.h>
 #include <utilities/Addresses.h>
 #include <utilities/FormatTools.h>
 #include <utilities/Mixins.h>
@@ -645,8 +646,9 @@ namespace SendTransaction
             obscuredInput.amount = walletAmount.input.amount;
 
             obscuredInput.ownerPublicSpendKey = walletAmount.publicSpendKey;
-
             obscuredInput.ownerPrivateSpendKey = walletAmount.privateSpendKey;
+            obscuredInput.keyImage = walletAmount.input.keyImage;
+            obscuredInput.privateEphemeral = walletAmount.input.privateEphemeral;
 
             if (mixin != 0)
             {
@@ -706,33 +708,6 @@ namespace SendTransaction
         return {SUCCESS, result};
     }
 
-    std::tuple<CryptoNote::KeyPair, Crypto::KeyImage>
-        genKeyImage(const WalletTypes::ObscuredInput input, const Crypto::SecretKey privateViewKey)
-    {
-        Crypto::KeyDerivation derivation;
-
-        /* Derive the key from the transaction public key, and our private
-           view key */
-        Crypto::generate_key_derivation(input.realTransactionPublicKey, privateViewKey, derivation);
-
-        CryptoNote::KeyPair tmpKeyPair;
-
-        /* Derive the public key of the tmp key pair */
-        Crypto::derive_public_key(
-            derivation, input.realOutputTransactionIndex, input.ownerPublicSpendKey, tmpKeyPair.publicKey);
-
-        /* Derive the secret key of the tmp key pair */
-        Crypto::derive_secret_key(
-            derivation, input.realOutputTransactionIndex, input.ownerPrivateSpendKey, tmpKeyPair.secretKey);
-
-        Crypto::KeyImage keyImage;
-
-        /* Generate the key image */
-        Crypto::generate_key_image(tmpKeyPair.publicKey, tmpKeyPair.secretKey, keyImage);
-
-        return {tmpKeyPair, keyImage};
-    }
-
     std::tuple<Error, std::vector<CryptoNote::KeyInput>, std::vector<Crypto::SecretKey>> setupInputs(
         const std::vector<WalletTypes::ObscuredInput> inputsAndFakes,
         const Crypto::SecretKey privateViewKey)
@@ -741,21 +716,41 @@ namespace SendTransaction
 
         std::vector<Crypto::SecretKey> tmpSecretKeys;
 
-        for (const auto input : inputsAndFakes)
+        int numPregenerated = 0;
+        int numGeneratedOnDemand = 0;
+
+        for (auto input : inputsAndFakes)
+
         {
-            const auto [tmpKeyPair, keyImage] = genKeyImage(input, privateViewKey);
-
-            if (tmpKeyPair.publicKey != input.outputs[input.realOutput].key)
-            {
-                return {INVALID_GENERATED_KEYIMAGE, inputs, tmpSecretKeys};
-            }
-
-            tmpSecretKeys.push_back(tmpKeyPair.secretKey);
-
             CryptoNote::KeyInput keyInput;
 
             keyInput.amount = input.amount;
-            keyInput.keyImage = keyImage;
+            keyInput.keyImage = input.keyImage;
+
+            if (!input.privateEphemeral)
+            {
+                Crypto::KeyDerivation derivation;
+
+                /* Derive the key from the transaction public key, and our private
+                   view key */
+                Crypto::generate_key_derivation(input.realTransactionPublicKey, privateViewKey, derivation);
+
+                Crypto::SecretKey privateEphemeral;
+
+                /* Derive the privateEphemeral */
+                Crypto::derive_secret_key(
+                    derivation, input.realOutputTransactionIndex, input.ownerPrivateSpendKey, privateEphemeral);
+
+                input.privateEphemeral = privateEphemeral;
+
+                numGeneratedOnDemand++;
+            }
+            else
+            {
+                numPregenerated++;
+            }
+
+            tmpSecretKeys.push_back(*input.privateEphemeral);
 
             /* Add each output index from the fake outs */
             std::transform(
@@ -784,6 +779,13 @@ namespace SendTransaction
             /* Store the key input */
             inputs.push_back(keyInput);
         }
+
+        Logger::logger.log(
+            "Generated private ephemerals for " + std::to_string(numGeneratedOnDemand) + " inputs, "
+            "used pre-generated ephemerals for " + std::to_string(numPregenerated) + " inputs.",
+            Logger::DEBUG,
+            { Logger::TRANSACTIONS }
+        );
 
         return {SUCCESS, inputs, tmpSecretKeys};
     }

@@ -9,6 +9,7 @@
 #include "json.hpp"
 
 #include <config/CryptoNoteConfig.h>
+#include <common/StringTools.h>
 #include <crypto/random.h>
 #include <cryptonotecore/Mixins.h>
 #include <cryptopp/modes.h>
@@ -690,8 +691,28 @@ std::tuple<Error, uint16_t>
         unlockTime = getJsonValue<uint64_t>(body, "unlockTime");
     }
 
+    std::vector<uint8_t> extraData;
+
+    if (body.find("extra") != body.end())
+    {
+        std::string extra = getJsonValue<std::string>(body, "extra");
+
+        if (!Common::fromHex(extra, extraData))
+        {
+            return {INVALID_EXTRA_DATA, 400};
+        }
+    }
+
     auto [error, hash] = m_walletBackend->sendTransactionAdvanced(
-        destinations, mixin, fee, paymentID, subWalletsToTakeFrom, changeAddress, unlockTime);
+        destinations,
+        mixin,
+        fee,
+        paymentID,
+        subWalletsToTakeFrom,
+        changeAddress,
+        unlockTime,
+        extraData
+    );
 
     if (error)
     {
@@ -747,7 +768,19 @@ std::tuple<Error, uint16_t>
         subWalletsToTakeFrom = getJsonValue<std::vector<std::string>>(body, "sourceAddresses");
     }
 
-    auto [error, hash] = m_walletBackend->sendFusionTransactionAdvanced(mixin, subWalletsToTakeFrom, destination);
+    std::vector<uint8_t> extraData;
+
+    if (body.find("extra") != body.end())
+    {
+        std::string extra = getJsonValue<std::string>(body, "extra");
+
+        if (!Common::fromHex(extra, extraData))
+        {
+            return {INVALID_EXTRA_DATA, 400};
+        }
+    }
+
+    auto [error, hash] = m_walletBackend->sendFusionTransactionAdvanced(mixin, subWalletsToTakeFrom, destination, extraData);
 
     if (error)
     {
@@ -1295,6 +1328,22 @@ std::tuple<Error, uint16_t> ApiDispatcher::getTransactionDetails(
         if (tx.hash == hash)
         {
             nlohmann::json j {{"transaction", tx}};
+
+            /* Replace publicKey with address for ease of use */
+            for (auto &tx : j.at("transaction.transfers"))
+            {
+                /* Get the spend key */
+                Crypto::PublicKey spendKey = tx.at("publicKey").get<Crypto::PublicKey>();
+
+                /* Get the address it belongs to */
+                const auto [error, address] = m_walletBackend->getAddress(spendKey);
+
+                /* Add the address to the json */
+                tx["address"] = address;
+
+                /* Remove the spend key */
+                tx.erase("publicKey");
+            }
 
             res.set_content(j.dump(4) + "\n", "application/json");
 

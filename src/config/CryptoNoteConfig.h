@@ -150,8 +150,8 @@ namespace CryptoNote
         const uint64_t CRYPTONOTE_NUMBER_OF_PERIODS_TO_FORGET_TX_DELETED_FROM_POOL =                7; // CRYPTONOTE_NUMBER_OF_PERIODS_TO_FORGET_TX_DELETED_FROM_POOL * CRYPTONOTE_MEMPOOL_TX_LIVETIME = time to forget tx
 
         const size_t FUSION_TX_MAX_SIZE               =  CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT * 30 / 100;
-        const size_t FUSION_TX_MIN_INPUT_COUNT        =                                                            12;
-        const size_t FUSION_TX_MIN_IN_OUT_COUNT_RATIO =                                                             4;
+        const size_t FUSION_TX_MIN_INPUT_COUNT        =                                                             6;
+        const size_t FUSION_TX_MIN_IN_OUT_COUNT_RATIO =                                                             3;
 
         const uint32_t UPGRADE_HEIGHT_V2              =                 50; // Upgrade height for CN-Dark Variant 1 switch
         const uint32_t UPGRADE_HEIGHT_V3              =                500; // Upgrade height for CN-Dark Lite Variant 1 switch

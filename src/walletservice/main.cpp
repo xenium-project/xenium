@@ -29,7 +29,7 @@
 #include <unistd.h>
 #endif
 
-#define SERVICE_NAME "Turtle-Service"
+#define SERVICE_NAME "XeniumService-deprecated"
 
 PaymentGateService *ppg;
 
@@ -363,6 +363,16 @@ int main(int argc, char **argv)
         }
 
         std::cout << CryptoNote::getProjectCLIHeader();
+
+
+        Logging::LoggerRef logger(pg.getLogger(), "garbago");
+        logger(Logging::WARNING, Logging::BRIGHT_RED) <<
+            "IF YOU ARE STILL USING THIS, YOU ARE DOING SOMETHING WRONG!";
+        logger(Logging::WARNING, Logging::BRIGHT_RED) <<
+            "This software will be removed in Xenium version v3.2.0 and heigher.";
+        logger(Logging::WARNING, Logging::BRIGHT_YELLOW) <<
+            "If you are a pool owner please look into recoding "
+            "your pool's payment system to rather use the XeniumWalletApi software!";
 
         const auto &config = pg.getConfig();
 

@@ -447,5 +447,18 @@ namespace PaymentService
         serializer(address, "address");
         serializer(amount, "amount");
     }
+    void ValidateAddress::Request::serialize(CryptoNote::ISerializer &serializer)
+    {
+        if (!serializer(address, "address")) {
+            throw RequestSerializationError();
+        }
+    }
+
+    void ValidateAddress::Response::serialize(CryptoNote::ISerializer &serializer)
+    {
+        serializer(isIntegrated, "isIntegrated");
+        serializer(paymentID, "paymentID");
+        serializer(actualAddress, "actualAddress");
+    }
 
 } // namespace PaymentService

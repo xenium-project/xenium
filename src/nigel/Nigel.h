@@ -125,7 +125,7 @@ class Nigel
                                 failMessage + " - Expected status \"OK\", got " + status,
                                 Logger::INFO,
                                 { Logger::SYNC, Logger::DAEMON }
-                            )
+                            );
 
                             return std::nullopt;
                         }

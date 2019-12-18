@@ -84,4 +84,6 @@ namespace WalletConfig
      * The amount of memory to use storing downloaded blocks - 64MB
      */
     const size_t blockStoreMemoryLimit = 1024 * 1024 * 64;
+
+    const size_t saveWalletEveryNBlocks = 50'000;
 } // namespace WalletConfig

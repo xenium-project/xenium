@@ -278,6 +278,10 @@ std::string Error::getErrorMessage() const
         {
             return "The private key given is not a valid ed25519 public key.";
         }
+        case INVALID_EXTRA_DATA:
+        {
+            return "The extra data given for the transaction could not be decoded.";
+        }
             /* No default case so the compiler warns us if we missed one */
     }
 

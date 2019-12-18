@@ -213,6 +213,13 @@ enum ErrorCode
 
     /* Extra data for transaction is not a valid hexadecimal string */
     INVALID_EXTRA_DATA = 53,
+
+    /* An unknown error occured */
+    UNKNOWN_ERROR = 54,
+
+    /* The daemon received our request but we timed out before we could figure
+     * out if it completed */
+    DAEMON_STILL_PROCESSING = 55,
 };
 
 class Error

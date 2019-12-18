@@ -40,6 +40,10 @@ namespace Logger
             {
                 return "Fatal";
             }
+            case TRACE:
+            {
+                return "Trace";
+            }
         }
 
         throw std::invalid_argument("Invalid log level given");
@@ -68,6 +72,10 @@ namespace Logger
         else if (level == "fatal")
         {
             return FATAL;
+        }
+        else if (level == "trace")
+        {
+            return TRACE;
         }
         throw std::invalid_argument("Invalid log level given");
     }

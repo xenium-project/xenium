@@ -9,6 +9,7 @@
 #include "common/StdOutputStream.h"
 #include "serialization/BinaryInputStreamSerializer.h"
 #include "serialization/BinaryOutputStreamSerializer.h"
+#include "logger/Logger.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -241,13 +242,37 @@ bool SwappedVector<T>::open(const std::string &itemFileName, const std::string &
 
     m_itemsFile.open(itemFileName, std::ios::in | std::ios::out | std::ios::binary);
     m_indexesFile.open(indexFileName, std::ios::in | std::ios::out | std::ios::binary);
+
     if (m_itemsFile && m_indexesFile)
     {
         uint64_t count;
         m_indexesFile.read(reinterpret_cast<char *>(&count), sizeof count);
+
         if (!m_indexesFile)
         {
-            return false;
+            /* Fail only if the other IO occured */
+            if (!m_indexesFile.eof())
+            {
+                return false;
+            }
+
+            Logger::logger.log("Blockchain indexes file appears to be corrupt."
+                "Attempting automatic recovery by rewinding to " + std::to_string(count),
+                Logger::WARNING,
+                { Logger::FILESYSTEM, Logger::DATABASE }
+            );
+
+            /* Clear the error */
+            m_indexesFile.clear();
+
+            /* 2019 and still retaining C98 compability */
+            m_indexesFile.seekp(0);
+
+            /* Update the count */
+            m_indexesFile.write(reinterpret_cast<char *> (&count), sizeof count);
+
+            /* Commit it to the database */
+            m_indexesFile.flush();
         }
 
         std::vector<uint64_t> offsets;

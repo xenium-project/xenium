@@ -153,6 +153,12 @@ namespace CryptoNote
         const size_t   FUSION_TX_MIN_INPUT_COUNT            =                                                            12;
         const size_t   FUSION_TX_MIN_IN_OUT_COUNT_RATIO     =                                                             4;
 
+        /* This sets the maximum number of fusion transactions that can be present in the pool
+           at any given time. Incoming fusion transactions that attempt to exceed this limit
+           will be rejected from the pool and will not be added. This mechanism is in place
+           to help curtail fusion transaction spam. */
+        const size_t   FUSION_TX_MAX_POOL_COUNT             =                                                            25;
+
         const size_t   NORMAL_TX_MAX_OUTPUT_RATIO_V1        =                                                            10;
         const size_t   NORMAL_TX_MAX_OUTPUT_RATIO_V1_HEIGHT =                                                       350'000;
 

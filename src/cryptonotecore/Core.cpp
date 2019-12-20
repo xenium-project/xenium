@@ -1119,7 +1119,7 @@ namespace CryptoNote
             }
 
             /* Loop through the rawBlock transaction hashes and verify that they are
-       all in the blocktemplate transaction hashes */
+               all in the blocktemplate transaction hashes */
             for (const auto &transaction : transactionHashes)
             {
                 const auto search = std::find(
@@ -1717,6 +1717,15 @@ namespace CryptoNote
     {
         const auto transactionHash = cachedTransaction.getTransactionHash();
 
+        if (cachedTransaction.getTransaction().outputs.size() >
+            cachedTransaction.getTransaction().inputs.size() * CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_RATIO_V1)
+        {
+            logger(Logging::TRACE) << "Not adding transaction " << transactionHash
+                                   << " to block template, excessive input deconstruction.";
+
+            return {false, "Transaction has an excessive number of outputs for the input count"};
+        }
+
         auto [success, err] = Mixins::validate({cachedTransaction}, getTopBlockIndex());
 
         if (!success)
@@ -2133,6 +2142,12 @@ namespace CryptoNote
         if (error != error::TransactionValidationError::VALIDATION_SUCCESS)
         {
             return error;
+        }
+
+        if (blockIndex >= CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_RATIO_V1_HEIGHT &&
+            transaction.outputs.size() > transaction.inputs.size() * CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_RATIO_V1)
+        {
+            return error::TransactionValidationError::EXCESSIVE_OUTPUTS;
         }
 
         size_t inputIndex = 0;
@@ -2954,6 +2969,16 @@ namespace CryptoNote
     {
         const auto &transaction = cachedTransaction.getTransaction();
 
+        /* Do not select transactions for inclusion in a block that create excessive outputs
+           this is to prevent abuse whereby 1 input is used to create thousands of outputs */
+        if (transaction.outputs.size() > transaction.inputs.size() * CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_RATIO_V1)
+        {
+            logger(Logging::TRACE) << "Not adding transaction " << cachedTransaction.getTransactionHash()
+                                   << " to block template, excessive input deconstruction.";
+
+            return false;
+        }
+
         if (transaction.extra.size() >= CryptoNote::parameters::MAX_EXTRA_SIZE_V2)
         {
             logger(Logging::TRACE) << "Not adding transaction " << cachedTransaction.getTransactionHash()
@@ -2998,7 +3023,7 @@ namespace CryptoNote
             [this, &spentInputsChecker, maxTotalSize, height, &transactionsSize, &fee, &block](
                 const CachedTransaction &transaction) {
                 /* If the current set of transactions included in the blocktemplate plus the transaction
-             we just passed in exceed the maximum size of a block, it won't fit so we'll move on */
+                   we just passed in exceed the maximum size of a block, it won't fit so we'll move on */
                 if (transactionsSize + transaction.getTransactionBinaryArray().size() > maxTotalSize)
                 {
                     return false;
@@ -3013,7 +3038,7 @@ namespace CryptoNote
                 }
 
                 /* Make sure that we have not already spent funds in this same block via
-             another transaction that we've already included in this block template */
+                   another transaction that we've already included in this block template */
                 if (!spentInputsChecker.haveSpentInputs(transaction.getTransaction()))
                 {
                     transactionsSize += transaction.getTransactionBinaryArray().size();

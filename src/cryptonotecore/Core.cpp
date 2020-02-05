@@ -2074,6 +2074,7 @@ namespace CryptoNote
         const CachedTransaction &cachedTransaction,
         TransactionValidatorState &state,
         IBlockchainCache *cache,
+        Utilities::ThreadPool<bool> &threadPool,
         uint64_t &fee,
         uint32_t blockIndex,
         const bool isPoolTransaction)
@@ -2084,6 +2085,7 @@ namespace CryptoNote
             cache,
             currency,
             checkpoints,
+            threadPool,
             blockIndex,
             blockMedianSize,
             isPoolTransaction
@@ -2718,7 +2720,6 @@ namespace CryptoNote
     /* A transaction that is valid at the time it was added to the pool, is not
        neccessarily valid now, if the network rules changed. */
     bool Core::validateBlockTemplateTransaction(const CachedTransaction &cachedTransaction, const uint64_t blockHeight)
-        const
     {
         /* Not used in revalidateAfterHeightChange() */
         TransactionValidatorState state;
@@ -2729,6 +2730,7 @@ namespace CryptoNote
             nullptr, /* Not used in revalidateAfterHeightChange() */
             currency,
             checkpoints,
+            m_transactionValidationThreadPool,
             blockHeight,
             blockMedianSize,
             true /* Pool transaction */
@@ -2745,7 +2747,7 @@ namespace CryptoNote
         const size_t maxCumulativeSize,
         const uint64_t height,
         size_t &transactionsSize,
-        uint64_t &fee) const
+        uint64_t &fee)
     {
         transactionsSize = 0;
         fee = 0;

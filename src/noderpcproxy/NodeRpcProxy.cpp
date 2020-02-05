@@ -615,6 +615,246 @@ namespace CryptoNote
         callback(std::error_code());
     }
 
+    std::error_code NodeRpcProxy::doRelayTransaction(const CryptoNote::Transaction &transaction)
+    {
+        COMMAND_RPC_SEND_RAW_TX::request req;
+        COMMAND_RPC_SEND_RAW_TX::response rsp;
+        req.tx_as_hex = toHex(toBinaryArray(transaction));
+        m_logger(TRACE) << "NodeRpcProxy::doRelayTransaction, tx hex " << req.tx_as_hex;
+        return jsonCommand("/sendrawtransaction", req, rsp);
+    }
+
+    std::error_code NodeRpcProxy::doGetRandomOutsByAmounts(
+        std::vector<uint64_t> &amounts,
+        uint16_t outsCount,
+        std::vector<RandomOuts> &outs)
+    {
+        COMMAND_RPC_GET_RANDOM_OUTPUTS_FOR_AMOUNTS::request req = AUTO_VAL_INIT(req);
+        COMMAND_RPC_GET_RANDOM_OUTPUTS_FOR_AMOUNTS::response rsp = AUTO_VAL_INIT(rsp);
+        req.amounts = std::move(amounts);
+        req.outs_count = outsCount;
+
+        m_logger(TRACE) << "Send getrandom_outs request";
+        std::error_code ec = jsonCommand("/getrandom_outs", req, rsp);
+        if (!ec)
+        {
+            m_logger(TRACE) << "getrandom_outs complete";
+            outs = std::move(rsp.outs);
+        }
+        else
+        {
+            m_logger(TRACE) << "getrandom_outs failed: " << ec << ", " << ec.message();
+        }
+
+        return ec;
+    }
+
+    std::error_code NodeRpcProxy::doGetTransactionOutsGlobalIndices(
+        const Crypto::Hash &transactionHash,
+        std::vector<uint32_t> &outsGlobalIndices)
+    {
+        CryptoNote::COMMAND_RPC_GET_TX_GLOBAL_OUTPUTS_INDEXES::request req = AUTO_VAL_INIT(req);
+        CryptoNote::COMMAND_RPC_GET_TX_GLOBAL_OUTPUTS_INDEXES::response rsp = AUTO_VAL_INIT(rsp);
+        req.txid = transactionHash;
+
+        m_logger(TRACE) << "Send get_o_indexes request, transaction " << req.txid;
+        std::error_code ec = jsonCommand("/get_o_indexes", req, rsp);
+        if (!ec)
+        {
+            m_logger(TRACE) << "get_o_indexes complete";
+            outsGlobalIndices.clear();
+            for (auto idx : rsp.o_indexes)
+            {
+                outsGlobalIndices.push_back(static_cast<uint32_t>(idx));
+            }
+        }
+        else
+        {
+            m_logger(TRACE) << "get_o_indexes failed: " << ec << ", " << ec.message();
+        }
+
+        return ec;
+    }
+
+    std::error_code NodeRpcProxy::doGetGlobalIndexesForRange(
+        const uint64_t startHeight,
+        const uint64_t endHeight,
+        std::unordered_map<Crypto::Hash, std::vector<uint64_t>> &indexes)
+    {
+        CryptoNote::COMMAND_RPC_GET_GLOBAL_INDEXES_FOR_RANGE::request req = AUTO_VAL_INIT(req);
+        CryptoNote::COMMAND_RPC_GET_GLOBAL_INDEXES_FOR_RANGE::response rsp = AUTO_VAL_INIT(rsp);
+
+        req.startHeight = startHeight;
+        req.endHeight = endHeight;
+
+        m_logger(TRACE) << "Send get_global_indexes_for_range request";
+
+        std::error_code ec = jsonCommand("/get_global_indexes_for_range", req, rsp);
+
+        if (!ec)
+        {
+            m_logger(TRACE) << "get_global_indexes_for_range complete";
+        }
+        else
+        {
+            m_logger(TRACE) << "get_global_indexes_for_range failed: " << ec << ", " << ec.message();
+        }
+
+        indexes.insert(rsp.indexes.begin(), rsp.indexes.end());
+
+        return ec;
+    }
+
+    std::error_code NodeRpcProxy::doGetTransactionsStatus(
+        const std::unordered_set<Crypto::Hash> transactionHashes,
+        std::unordered_set<Crypto::Hash> &transactionsInPool,
+        std::unordered_set<Crypto::Hash> &transactionsInBlock,
+        std::unordered_set<Crypto::Hash> &transactionsUnknown)
+    {
+        CryptoNote::COMMAND_RPC_GET_TRANSACTIONS_STATUS::request req = AUTO_VAL_INIT(req);
+        CryptoNote::COMMAND_RPC_GET_TRANSACTIONS_STATUS::response rsp = AUTO_VAL_INIT(rsp);
+
+        req.transactionHashes = transactionHashes;
+
+        m_logger(TRACE) << "Send get_transactions_status request";
+
+        std::error_code ec = jsonCommand("/get_transactions_status", req, rsp);
+
+        if (!ec)
+        {
+            m_logger(TRACE) << "get_transactions_status complete";
+        }
+        else
+        {
+            m_logger(TRACE) << "get_transactions_status failed: " << ec << ", " << ec.message();
+        }
+
+        transactionsInPool = rsp.transactionsInPool;
+        transactionsInBlock = rsp.transactionsInBlock;
+        transactionsUnknown = rsp.transactionsUnknown;
+
+        return ec;
+    }
+
+    std::error_code NodeRpcProxy::doQueryBlocksLite(
+        const std::vector<Crypto::Hash> &knownBlockIds,
+        uint64_t timestamp,
+        std::vector<CryptoNote::BlockShortEntry> &newBlocks,
+        uint32_t &startHeight)
+    {
+        CryptoNote::COMMAND_RPC_QUERY_BLOCKS_LITE::request req = AUTO_VAL_INIT(req);
+        CryptoNote::COMMAND_RPC_QUERY_BLOCKS_LITE::response rsp = AUTO_VAL_INIT(rsp);
+
+        req.blockIds = knownBlockIds;
+        req.timestamp = timestamp;
+
+        m_logger(TRACE) << "Send queryblockslite request, timestamp " << req.timestamp;
+        std::error_code ec = jsonCommand("/queryblockslite", req, rsp);
+        if (ec)
+        {
+            m_logger(TRACE) << "queryblockslite failed: " << ec << ", " << ec.message();
+            return ec;
+        }
+
+        m_logger(TRACE) << "queryblockslite complete, startHeight " << rsp.startHeight << ", block count "
+                        << rsp.items.size();
+        startHeight = static_cast<uint32_t>(rsp.startHeight);
+
+        for (auto &item : rsp.items)
+        {
+            BlockShortEntry bse;
+            bse.hasBlock = false;
+
+            bse.blockHash = std::move(item.blockId);
+            if (!item.block.empty())
+            {
+                if (!fromBinaryArray(bse.block, item.block))
+                {
+                    return std::make_error_code(std::errc::invalid_argument);
+                }
+
+                bse.hasBlock = true;
+            }
+
+            for (const auto &txp : item.txPrefixes)
+            {
+                TransactionShortInfo tsi;
+                tsi.txId = txp.txHash;
+                tsi.txPrefix = txp.txPrefix;
+                bse.txsShortInfo.push_back(std::move(tsi));
+            }
+
+            newBlocks.push_back(std::move(bse));
+        }
+
+        return std::error_code();
+    }
+
+    std::error_code NodeRpcProxy::doGetWalletSyncData(
+        const std::vector<Crypto::Hash> &knownBlockIds,
+        uint64_t startHeight,
+        uint64_t startTimestamp,
+        std::vector<WalletTypes::WalletBlockInfo> &newBlocks)
+    {
+        CryptoNote::COMMAND_RPC_GET_WALLET_SYNC_DATA::request req = AUTO_VAL_INIT(req);
+        CryptoNote::COMMAND_RPC_GET_WALLET_SYNC_DATA::response rsp = AUTO_VAL_INIT(rsp);
+
+        req.blockIds = knownBlockIds;
+        req.startHeight = startHeight;
+        req.startTimestamp = startTimestamp;
+
+        m_logger(TRACE) << "Send getwalletsyncdata request, start timestamp: " << req.startTimestamp
+                        << ", start height: " << req.startHeight;
+
+        std::error_code ec = jsonCommand("/getwalletsyncdata", req, rsp);
+        if (ec)
+        {
+            m_logger(TRACE) << "getwalletsyncdata failed: " << ec << ", " << ec.message();
+            return ec;
+        }
+
+        m_logger(TRACE) << "queryblockslite complete, block count " << rsp.items.size();
+
+        newBlocks = rsp.items;
+
+        return std::error_code();
+    }
+
+    std::error_code NodeRpcProxy::doGetPoolSymmetricDifference(
+        std::vector<Crypto::Hash> &&knownPoolTxIds,
+        Crypto::Hash knownBlockId,
+        bool &isBcActual,
+        std::vector<std::unique_ptr<ITransactionReader>> &newTxs,
+        std::vector<Crypto::Hash> &deletedTxIds)
+    {
+        CryptoNote::COMMAND_RPC_GET_POOL_CHANGES_LITE::request req = AUTO_VAL_INIT(req);
+        CryptoNote::COMMAND_RPC_GET_POOL_CHANGES_LITE::response rsp = AUTO_VAL_INIT(rsp);
+
+        req.tailBlockId = knownBlockId;
+        req.knownTxsIds = knownPoolTxIds;
+
+        m_logger(TRACE) << "Send get_pool_changes_lite request, tailBlockId " << req.tailBlockId;
+        std::error_code ec = jsonCommand("/get_pool_changes_lite", req, rsp);
+
+        if (ec)
+        {
+            m_logger(TRACE) << "get_pool_changes_lite failed: " << ec << ", " << ec.message();
+            return ec;
+        }
+
+        m_logger(TRACE) << "get_pool_changes_lite complete, isTailBlockActual " << rsp.isTailBlockActual;
+        isBcActual = rsp.isTailBlockActual;
+
+        deletedTxIds = std::move(rsp.deletedTxsIds);
+
+        for (const auto &tpi : rsp.addedTxs)
+        {
+            newTxs.push_back(createTransactionPrefix(tpi.txPrefix, tpi.txHash));
+        }
+
+        return ec;
+    }
+
     void NodeRpcProxy::scheduleRequest(std::function<std::error_code()> &&procedure, const Callback &callback)
     {
         // callback is located on stack, so copy it inside binder

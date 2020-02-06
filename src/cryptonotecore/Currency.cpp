@@ -348,16 +348,19 @@ namespace CryptoNote
     {
         if (size > fusionTxMaxSize())
         {
+            logger(TRACE) << "Fusion transaction is too big!";
             return false;
         }
 
         if (inputsAmounts.size() < fusionTxMinInputCount())
         {
+            logger(TRACE) << "Fusion transaction inputs are too few!";
             return false;
         }
 
         if (inputsAmounts.size() < outputsAmounts.size() * fusionTxMinInOutCountRatio())
         {
+            logger(TRACE) << "Fusion transaction inputs are more than outputs * InOut ratio!";
             return false;
         }
 
@@ -366,6 +369,7 @@ namespace CryptoNote
         {
             if (amount < defaultFusionDustThreshold(height))
             {
+                logger(TRACE) << "Fusion transaction amount is too low for fusion dust threshold!";
                 return false;
             }
 

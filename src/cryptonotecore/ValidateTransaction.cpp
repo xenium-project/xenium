@@ -487,10 +487,10 @@ bool ValidateTransaction::validateTransactionInputsExpensive()
                 m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::INPUT_SPEND_LOCKED_OUT;
                 m_validationResult.errorMessage = "Transaction includes an input which is still locked";
 
+
+                return false;
             }
 
-                    return false;
-                }
             if (m_isPoolTransaction || m_blockHeight >= CryptoNote::parameters::TRANSACTION_SIGNATURE_COUNT_VALIDATION_HEIGHT)
             {
                 if (outputKeys.size() != m_transaction.signatures[inputIndex].size())

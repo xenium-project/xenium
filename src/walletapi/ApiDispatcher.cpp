@@ -98,10 +98,25 @@ ApiDispatcher::ApiDispatcher(
         /* Validate an address */
         .Post("/addresses/validate", router(&ApiDispatcher::validateAddress, DoesntMatter, viewWalletsAllowed))
 
+        /* Send a previously prepared transaction */
+        .Post(
+            "/transactions/send/prepared",
+            router(&ApiDispatcher::sendPreparedTransaction, WalletMustBeOpen, viewWalletsBanned))
+
+        /* Prepare a transaction */
+        .Post(
+            "/transactions/prepare/basic",
+            router(&ApiDispatcher::prepareBasicTransaction, WalletMustBeOpen, viewWalletsBanned))
+
         /* Send a transaction */
         .Post(
             "/transactions/send/basic",
             router(&ApiDispatcher::sendBasicTransaction, WalletMustBeOpen, viewWalletsBanned))
+
+        /* Prepare a transaction, more parameters specified */
+        .Post(
+            "/transactions/prepare/advanced",
+            router(&ApiDispatcher::prepareAdvancedTransaction, WalletMustBeOpen, viewWalletsBanned))
 
         /* Send a transaction, more parameters specified */
         .Post(
@@ -127,6 +142,11 @@ ApiDispatcher::ApiDispatcher(
         .Delete(
             "/addresses/" + ApiConstants::addressRegex,
             router(&ApiDispatcher::deleteAddress, WalletMustBeOpen, viewWalletsAllowed))
+
+        /* Delete a previously prepared transaction */
+        .Delete(
+            "/transactions/prepared" + ApiConstants::hashRegex,
+            router(&ApiDispatcher::deletePreparedTransaction, WalletMustBeOpen, viewWalletsBanned))
 
         /* PUT */
 
@@ -638,7 +658,41 @@ std::tuple<Error, uint16_t>
 }
 
 std::tuple<Error, uint16_t>
+    ApiDispatcher::sendPreparedTransaction(const httplib::Request &req, httplib::Response &res, const nlohmann::json &body)
+{
+    const auto hash = getJsonValue<Crypto::Hash>(body, "transactionHash");
+
+    auto [error, hashResult] = m_walletBackend->sendPreparedTransaction(hash);
+
+    if (error)
+    {
+        return {error, 400};
+    }
+
+    nlohmann::json j {{"transactionHash", hashResult}};
+
+    res.set_content(j.dump(4) + "\n", "application/json");
+
+    return {SUCCESS, 201};
+}
+
+std::tuple<Error, uint16_t>
+    ApiDispatcher::prepareBasicTransaction(const httplib::Request &req, httplib::Response &res, const nlohmann::json &body)
+{
+    return makeBasicTransaction(req, res, body, false);
+}
+
+std::tuple<Error, uint16_t>
     ApiDispatcher::sendBasicTransaction(const httplib::Request &req, httplib::Response &res, const nlohmann::json &body)
+{
+    return makeBasicTransaction(req, res, body, true);
+}
+
+std::tuple<Error, uint16_t> ApiDispatcher::makeBasicTransaction(
+    const httplib::Request &req,
+    httplib::Response &res,
+    const nlohmann::json &body,
+    const bool sendTransaction)
 {
     const std::string address = getJsonValue<std::string>(body, "destination");
 
@@ -651,14 +705,25 @@ std::tuple<Error, uint16_t>
         paymentID = getJsonValue<std::string>(body, "paymentID");
     }
 
-    auto [error, hash] = m_walletBackend->sendTransactionBasic(address, amount, paymentID);
+    auto [error, hash, preparedTransaction] = m_walletBackend->sendTransactionBasic(
+        address,
+        amount,
+        paymentID,
+        false, /* Don't send all */
+        sendTransaction
+    );
 
     if (error)
     {
         return {error, 400};
     }
 
-    nlohmann::json j {{"transactionHash", hash}};
+    nlohmann::json j
+    {
+        {"transactionHash", hash},
+        {"fee", preparedTransaction.fee},
+        {"relayedToNetwork", sendTransaction}
+    };
 
     res.set_content(j.dump(4) + "\n", "application/json");
 
@@ -666,7 +731,22 @@ std::tuple<Error, uint16_t>
 }
 
 std::tuple<Error, uint16_t>
+    ApiDispatcher::prepareAdvancedTransaction(const httplib::Request &req, httplib::Response &res, const nlohmann::json &body)
+{
+    return makeAdvancedTransaction(req, res, body, false);
+}
+
+std::tuple<Error, uint16_t>
     ApiDispatcher::sendAdvancedTransaction(const httplib::Request &req, httplib::Response &res, const nlohmann::json &body)
+{
+    return makeAdvancedTransaction(req, res, body, true);
+}
+
+std::tuple<Error, uint16_t> ApiDispatcher::makeAdvancedTransaction(
+    const httplib::Request &req,
+    httplib::Response &res,
+    const nlohmann::json &body,
+    const bool sendTransaction)
 {
     const json destinationsJSON = getJsonValue<json>(body, "destinations");
 
@@ -692,11 +772,15 @@ std::tuple<Error, uint16_t>
             Utilities::getMixinAllowableRange(m_walletBackend->getStatus().networkBlockCount);
     }
 
-    uint64_t fee = WalletConfig::defaultFee;
+    auto fee = WalletTypes::FeeType::MinimumFee();
 
     if (body.find("fee") != body.end())
     {
-        fee = getJsonValue<uint64_t>(body, "fee");
+        fee = WalletTypes::FeeType::FixedFee(getJsonValue<uint64_t>(body, "fee"));
+    }
+    else if (body.find("feePerByte") != body.end())
+    {
+        fee = WalletTypes::FeeType::FeePerByte(getJsonValue<float>(body, "feePerByte"));
     }
 
     std::vector<std::string> subWalletsToTakeFrom = {};
@@ -738,15 +822,30 @@ std::tuple<Error, uint16_t>
         }
     }
     
-    auto [error, hash] = m_walletBackend->sendTransactionAdvanced(
-        destinations, mixin, fee, paymentID, subWalletsToTakeFrom, changeAddress, unlockTime, extraData);
+    auto [error, hash, preparedTransaction] = m_walletBackend->sendTransactionAdvanced(
+        destinations,
+        mixin,
+        fee,
+        paymentID,
+        subWalletsToTakeFrom,
+        changeAddress,
+        unlockTime,
+        extraData,
+        false, /* Don't send all */
+        sendTransaction
+    );
 
     if (error)
     {
         return {error, 400};
     }
 
-    nlohmann::json j {{"transactionHash", hash}};
+    nlohmann::json j
+    {
+        {"transactionHash", hash},
+        {"fee", preparedTransaction.fee},
+        {"relayedToNetwork", sendTransaction}
+    };
 
     res.set_content(j.dump(4) + "\n", "application/json");
 
@@ -852,6 +951,27 @@ std::tuple<Error, uint16_t> ApiDispatcher::deleteAddress(const httplib::Request 
     }
 
     return {SUCCESS, 200};
+}
+
+std::tuple<Error, uint16_t> ApiDispatcher::deletePreparedTransaction(const httplib::Request &req, httplib::Response &res, const nlohmann::json &body)
+{
+    /* Remove the path prefix to get the hash */
+    std::string hashStr = req.path.substr(std::string("/transactions/prepared/").size());
+
+    Crypto::Hash hash;
+
+    Common::podFromHex(hashStr, hash.data);
+
+    const bool removed = m_walletBackend->removePreparedTransaction(hash);
+
+    if (removed)
+    {
+        return {SUCCESS, 200};
+    }
+    else
+    {
+        return {SUCCESS, 404};
+    }
 }
 
 //////////////////

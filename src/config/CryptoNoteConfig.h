@@ -75,7 +75,14 @@ namespace CryptoNote
         const size_t   CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE            =                                       600;
 
         const size_t   CRYPTONOTE_DISPLAY_DECIMAL_POINT                  =                                         3;
+        
+        /* Fixed fee */
         const uint64_t MINIMUM_FEE                                       =                             UINT64_C(500);
+
+        /* Fee per byte */
+        const uint64_t FEE_PER_BYTE_V1_HEIGHT                            =                                   675'000;
+        const uint64_t FEE_PER_BYTE_V1_CHUNK_SIZE                        =                                       256;
+        const double   MINIMUM_FEE_PER_BYTE_V1                           =  MINIMUM_FEE / FEE_PER_BYTE_V1_CHUNK_SIZE;
 
         /* This section defines our minimum and maximum mixin counts required for transactions */
         const uint64_t MINIMUM_MIXIN_V1                        =                                      0;
@@ -97,7 +104,7 @@ namespace CryptoNote
         const uint64_t DEFAULT_MIXIN_V2                        =                                      3;
         const uint64_t DEFAULT_MIXIN_V3                        =                       MAXIMUM_MIXIN_V3;
 
-        const uint64_t DEFAULT_DUST_THRESHOLD                  =                          UINT64_C(100);
+        const uint64_t DEFAULT_DUST_THRESHOLD                  =                            UINT64_C(0);
         const uint64_t DEFAULT_DUST_THRESHOLD_V2               =                            UINT64_C(0);
 
         const uint32_t DUST_THRESHOLD_V2_HEIGHT                =                 MIXIN_LIMITS_V2_HEIGHT;

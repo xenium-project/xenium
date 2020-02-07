@@ -9,6 +9,7 @@
 #include <cryptonotecore/Mixins.h>
 #include <cryptonotecore/TransactionValidationErrors.h>
 #include <cryptonotecore/ValidateTransaction.h>
+#include <utilities/Utilities.h>
 
 ValidateTransaction::ValidateTransaction(
     const CryptoNote::CachedTransaction &cachedTransaction,
@@ -328,7 +329,23 @@ bool ValidateTransaction::validateTransactionFee()
 
     if (!isFusion)
     {
-        if (fee == 0 || (fee < CryptoNote::parameters::MINIMUM_FEE && m_isPoolTransaction))
+        bool validFee = fee != 0;
+
+        if (m_blockHeight >= CryptoNote::parameters::FEE_PER_BYTE_V1_HEIGHT)
+        {
+            const auto minFee = Utilities::getMinimumTransactionFee(
+                m_cachedTransaction.getTransactionBinaryArray().size(),
+                m_blockHeight
+            );
+
+            validFee = fee >= minFee;
+        }
+        else if (m_isPoolTransaction)
+        {
+            validFee = fee >= CryptoNote::parameters::MINIMUM_FEE;
+        }
+
+        if (!validFee)
         {
             m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::WRONG_FEE;
             m_validationResult.errorMessage = "Transaction fee is below minimum fee and is not a fusion transaction";

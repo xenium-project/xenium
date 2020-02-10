@@ -86,9 +86,11 @@ TransactionValidationResult ValidateTransaction::validate()
     {
         return m_validationResult;
     }
-    
+
     m_validationResult.valid = true;
-    m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::VALIDATION_SUCCESS;
+    setTransactionValidationResult(
+        CryptoNote::error::TransactionValidationError::VALIDATION_SUCCESS
+    );
 
     return m_validationResult;
 }
@@ -115,7 +117,9 @@ TransactionValidationResult ValidateTransaction::revalidateAfterHeightChange()
     }
 
     m_validationResult.valid = true;
-    m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::VALIDATION_SUCCESS;
+    setTransactionValidationResult(
+        CryptoNote::error::TransactionValidationError::VALIDATION_SUCCESS
+    );
 
     return m_validationResult;
 }
@@ -127,8 +131,11 @@ bool ValidateTransaction::validateTransactionSize()
 
     if (m_cachedTransaction.getTransactionBinaryArray().size() > maxTransactionSize)
     {
-        m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::SIZE_TOO_LARGE;
-        m_validationResult.errorMessage = "Transaction is too large (in bytes)";
+        setTransactionValidationResult(
+            CryptoNote::error::TransactionValidationError::SIZE_TOO_LARGE,
+            "Transaction is too large (in bytes)"
+        );
+
         return false;
     }
 
@@ -139,8 +146,10 @@ bool ValidateTransaction::validateTransactionInputs()
 {
     if (m_transaction.inputs.empty())
     {
-        m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::EMPTY_INPUTS;
-        m_validationResult.errorMessage = "Transaction has no inputs";
+        setTransactionValidationResult(
+            CryptoNote::error::TransactionValidationError::EMPTY_INPUTS,
+            "Transaction has no inputs"
+        );
 
         return false;
     }
@@ -172,16 +181,20 @@ bool ValidateTransaction::validateTransactionInputs()
 
             if (!ki.insert(in.keyImage).second)
             {
-                m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::INPUT_IDENTICAL_KEYIMAGES;
-                m_validationResult.errorMessage = "Transaction contains identical key images";
+                setTransactionValidationResult(
+                    CryptoNote::error::TransactionValidationError::INPUT_IDENTICAL_KEYIMAGES,
+                    "Transaction contains identical key images"
+                );
 
                 return false;
             }
 
             if (in.outputIndexes.empty())
             {
-                m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::INPUT_EMPTY_OUTPUT_USAGE;
-                m_validationResult.errorMessage = "Transaction contains no output indexes";
+                setTransactionValidationResult(
+                    CryptoNote::error::TransactionValidationError::INPUT_EMPTY_OUTPUT_USAGE,
+                    "Transaction contains no output indexes"
+                );
 
                 return false;
             }
@@ -191,41 +204,50 @@ bool ValidateTransaction::validateTransactionInputs()
              * Fix discovered by Monero Lab and suggested by "fluffypony" (bitcointalk.org) */
             if (!(scalarmultKey(in.keyImage, L) == I))
             {
-                m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::INPUT_INVALID_DOMAIN_KEYIMAGES;
-                m_validationResult.errorMessage = "Transaction contains key images in an invalid domain";
+                setTransactionValidationResult(
+                    CryptoNote::error::TransactionValidationError::INPUT_INVALID_DOMAIN_KEYIMAGES,
+                    "Transaction contains key images in an invalid domain"
+                );
 
                 return false;
             }
 
-            if (std::find(++std::begin(in.outputIndexes), std::end(in.outputIndexes), 0)
-                != std::end(in.outputIndexes))
+            if (std::find(++std::begin(in.outputIndexes), std::end(in.outputIndexes), 0) != std::end(in.outputIndexes))
             {
-                m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::INPUT_IDENTICAL_OUTPUT_INDEXES;
-                m_validationResult.errorMessage = "Transaction contains identical output indexes";
+                setTransactionValidationResult(
+                    CryptoNote::error::TransactionValidationError::INPUT_IDENTICAL_OUTPUT_INDEXES,
+                    "Transaction contains identical output indexes"
+                );
 
                 return false;
             }
 
             if (!m_validatorState.spentKeyImages.insert(in.keyImage).second)
             {
-                m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::INPUT_KEYIMAGE_ALREADY_SPENT;
-                m_validationResult.errorMessage = "Transaction contains key image that has already been spent";
+                setTransactionValidationResult(
+                    CryptoNote::error::TransactionValidationError::INPUT_KEYIMAGE_ALREADY_SPENT,
+                    "Transaction contains key image that has already been spent"
+                );
 
                 return false;
             }
         }
         else
         {
-            m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::INPUT_UNKNOWN_TYPE;
-            m_validationResult.errorMessage = "Transaction input has an unknown input type";
+            setTransactionValidationResult(
+                CryptoNote::error::TransactionValidationError::INPUT_UNKNOWN_TYPE,
+                "Transaction input has an unknown input type"
+            );
 
             return false;
         }
 
         if (std::numeric_limits<uint64_t>::max() - amount < sumOfInputs)
         {
-            m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::INPUTS_AMOUNT_OVERFLOW;
-            m_validationResult.errorMessage = "Transaction inputs will overflow";
+            setTransactionValidationResult(
+                CryptoNote::error::TransactionValidationError::INPUTS_AMOUNT_OVERFLOW,
+                "Transaction inputs will overflow"
+            );
 
             return false;
         }
@@ -246,8 +268,10 @@ bool ValidateTransaction::validateTransactionOutputs()
     {
         if (output.amount == 0)
         {
-            m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::OUTPUT_ZERO_AMOUNT;
-            m_validationResult.errorMessage = "Transaction has an output amount of zero";
+            setTransactionValidationResult(
+                CryptoNote::error::TransactionValidationError::OUTPUT_ZERO_AMOUNT,
+                "Transaction has an output amount of zero"
+            );
 
             return false;
         }
@@ -256,8 +280,10 @@ bool ValidateTransaction::validateTransactionOutputs()
         {
             if (output.amount > CryptoNote::parameters::MAX_OUTPUT_SIZE_NODE)
             {
-                m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::OUTPUT_AMOUNT_TOO_LARGE;
-                m_validationResult.errorMessage = "Transaction has a too large output amount";
+                setTransactionValidationResult(
+                    CryptoNote::error::TransactionValidationError::OUTPUT_AMOUNT_TOO_LARGE,
+                    "Transaction has a too large output amount"
+                );
 
                 return false;
             }
@@ -267,24 +293,30 @@ bool ValidateTransaction::validateTransactionOutputs()
         {
             if (!check_key(boost::get<CryptoNote::KeyOutput>(output.target).key))
             {
-                m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::OUTPUT_INVALID_KEY;
-                m_validationResult.errorMessage = "Transaction output has an invalid output key";
+                setTransactionValidationResult(
+                    CryptoNote::error::TransactionValidationError::OUTPUT_INVALID_KEY,
+                    "Transaction output has an invalid output key"
+                );
 
                 return false;
             }
         }
         else
         {
-            m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::OUTPUT_UNKNOWN_TYPE;
-            m_validationResult.errorMessage = "Transaction output has an unknown output type";
+            setTransactionValidationResult(
+                CryptoNote::error::TransactionValidationError::OUTPUT_UNKNOWN_TYPE,
+                "Transaction output has an unknown output type"
+            );
 
             return false;
         }
 
         if (std::numeric_limits<uint64_t>::max() - output.amount < sumOfOutputs)
         {
-            m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::OUTPUTS_AMOUNT_OVERFLOW;
-            m_validationResult.errorMessage = "Transaction outputs will overflow";
+            setTransactionValidationResult(
+                CryptoNote::error::TransactionValidationError::OUTPUTS_AMOUNT_OVERFLOW,
+                "Transaction outputs will overflow"
+            );
 
             return false;
         }
@@ -313,8 +345,10 @@ bool ValidateTransaction::validateTransactionFee()
 
     if (m_sumOfOutputs > m_sumOfInputs)
     {
-        m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::WRONG_AMOUNT;
-        m_validationResult.errorMessage = "Sum of outputs is greater than sum of inputs";
+        setTransactionValidationResult(
+            CryptoNote::error::TransactionValidationError::WRONG_AMOUNT,
+            "Sum of outputs is greater than sum of inputs"
+        );
 
         return false;
     }
@@ -347,8 +381,10 @@ bool ValidateTransaction::validateTransactionFee()
 
         if (!validFee)
         {
-            m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::WRONG_FEE;
-            m_validationResult.errorMessage = "Transaction fee is below minimum fee and is not a fusion transaction";
+            setTransactionValidationResult(
+                CryptoNote::error::TransactionValidationError::WRONG_FEE,
+                "Transaction fee is below minimum fee and is not a fusion transaction"
+            );
 
             return false;
         }
@@ -371,8 +407,10 @@ bool ValidateTransaction::validateTransactionExtra()
     {
         if (m_transaction.extra.size() >= CryptoNote::parameters::MAX_EXTRA_SIZE_V2)
         {
-            m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::EXTRA_TOO_LARGE;
-            m_validationResult.errorMessage = "Transaction extra is too large";
+            setTransactionValidationResult(
+                CryptoNote::error::TransactionValidationError::EXTRA_TOO_LARGE,
+                "Transaction extra is too large"
+            );
 
             return false;
         }
@@ -387,8 +425,10 @@ bool ValidateTransaction::validateInputOutputRatio()
     {
         if (m_transaction.outputs.size() > m_transaction.inputs.size() * CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_RATIO_V1)
         {
-            m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::EXCESSIVE_OUTPUTS;
-            m_validationResult.errorMessage = "Transaction has excessive output/input ratio";
+            setTransactionValidationResult(
+                CryptoNote::error::TransactionValidationError::EXCESSIVE_OUTPUTS,
+                "Transaction has excessive outputs. Reduce the number of payees."
+            );
 
             return false;
         }
@@ -415,8 +455,10 @@ bool ValidateTransaction::validateTransactionMixin()
     {
         if (m_isPoolTransaction)
         {
-            m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::INVALID_MIXIN;
-            m_validationResult.errorMessage = err;
+            setTransactionValidationResult(
+                CryptoNote::error::TransactionValidationError::INVALID_MIXIN,
+                err
+            );
 
             return false;
         }
@@ -426,8 +468,10 @@ bool ValidateTransaction::validateTransactionMixin()
 
         if (!success)
         {
-            m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::INVALID_MIXIN;
-            m_validationResult.errorMessage = err;
+            setTransactionValidationResult(
+                CryptoNote::error::TransactionValidationError::INVALID_MIXIN,
+                err
+            );
 
             return false;
         }
@@ -467,8 +511,10 @@ bool ValidateTransaction::validateTransactionInputsExpensive()
 
             if (m_blockchainCache->checkIfSpent(in.keyImage, m_blockHeight))
             {
-                m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::INPUT_KEYIMAGE_ALREADY_SPENT;
-                m_validationResult.errorMessage = "Transaction contains key image that has already been spent";
+                setTransactionValidationResult(
+                    CryptoNote::error::TransactionValidationError::INPUT_KEYIMAGE_ALREADY_SPENT,
+                    "Transaction contains key image that has already been spent"
+                );
 
                 return false;
             }
@@ -493,16 +539,20 @@ bool ValidateTransaction::validateTransactionInputsExpensive()
 
             if (result == CryptoNote::ExtractOutputKeysResult::INVALID_GLOBAL_INDEX)
             {
-                m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::INPUT_INVALID_GLOBAL_INDEX;
-                m_validationResult.errorMessage = "Transaction contains invalid global indexes";
+                setTransactionValidationResult(
+                    CryptoNote::error::TransactionValidationError::INPUT_INVALID_GLOBAL_INDEX,
+                    "Transaction contains invalid global indexes"
+                );
 
                 return false;
             }
 
             if (result == CryptoNote::ExtractOutputKeysResult::OUTPUT_LOCKED)
             {
-                m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::INPUT_SPEND_LOCKED_OUT;
-                m_validationResult.errorMessage = "Transaction includes an input which is still locked";
+                setTransactionValidationResult(
+                    CryptoNote::error::TransactionValidationError::INPUT_SPEND_LOCKED_OUT,
+                    "Transaction includes an input which is still locked"
+                );
 
 
                 return false;
@@ -512,8 +562,10 @@ bool ValidateTransaction::validateTransactionInputsExpensive()
             {
                 if (outputKeys.size() != m_transaction.signatures[inputIndex].size())
                 {
-                    m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::INPUT_INVALID_SIGNATURES_COUNT;
-                    m_validationResult.errorMessage = "Transaction has an invalid number of signatures";
+                    setTransactionValidationResult(
+                        CryptoNote::error::TransactionValidationError::INPUT_INVALID_SIGNATURES_COUNT,
+                        "Transaction has an invalid number of signatures"
+                    );
 
                     return false;
                 }
@@ -525,8 +577,10 @@ bool ValidateTransaction::validateTransactionInputsExpensive()
                 outputKeys,
                 m_transaction.signatures[inputIndex]))
             {
-                m_validationResult.errorCode = CryptoNote::error::TransactionValidationError::INPUT_INVALID_SIGNATURES;
-                m_validationResult.errorMessage = "Transaction contains invalid signatures";
+                setTransactionValidationResult(
+                    CryptoNote::error::TransactionValidationError::INPUT_INVALID_SIGNATURES,
+                    "Transaction contains invalid signatures"
+                );
 
                 return false;
             }
@@ -549,4 +603,13 @@ bool ValidateTransaction::validateTransactionInputsExpensive()
     }
 
     return valid;
+}
+
+void ValidateTransaction::setTransactionValidationResult(const std::error_code &error_code, const std::string &error_message)
+{
+    std::scoped_lock<std::mutex> lock(m_mutex);
+
+    m_validationResult.errorCode = error_code;
+
+    m_validationResult.errorMessage = error_message;
 }

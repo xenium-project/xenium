@@ -27,6 +27,7 @@
 #include <system/Timer.h>
 #include <system_error>
 #include <thread>
+#include <version.h>
 
 #ifndef AUTO_VAL_INIT
 #define AUTO_VAL_INIT(n) boost::value_initialized<decltype(n)>()
@@ -996,6 +997,13 @@ namespace CryptoNote
             HttpResponse httpRes;
 
             httpReq.addHeader("Content-Type", "application/json");
+
+            std::stringstream userAgent;
+
+            userAgent << "NodeRpcProxy/" << PROJECT_VERSION_LONG;
+
+            httpReq.addHeader("User-Agent", userAgent.str());
+
             httpReq.setUrl("/json_rpc");
             httpReq.setBody(jsReq.getBody());
 

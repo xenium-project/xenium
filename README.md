@@ -88,6 +88,32 @@ cd src
 ./XeniumDaemon --version
 ```
 
+##### CentOS, using GCC (Courtesy : @brandonlehmann)
+
+```bash
+sudo yum update -y
+sudo yum install -y epel-release centos-release-scl
+sudo yum install -y devtoolset-8 cmake3 wget git openssl-devel
+sudo scl enable devtoolset-8 bash
+wget https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz
+tar xzvf boost_1_68_0.tar.gz && cd boost_1_68_0
+./bootstrap.sh --prefix=/usr/local/
+./b2 -j$(nproc) -d0 install --with-system --with-filesystem --with-thread --with-date_time --with-chrono --with-regex --with-serialization --with-program_options
+cd ..
+git clone https://github.com/xenium-project/xenium
+mkdir -p xenium/build
+cd xenium/build
+cmake3 ..
+make
+```
+
+The binaries will be in the `src` folder when you are complete.
+
+```bash
+cd src
+./TurtleCoind --version
+```
+
 ##### Generic Linux
 
 Ensure you have the dependencies listed above.

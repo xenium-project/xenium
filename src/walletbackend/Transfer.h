@@ -23,7 +23,8 @@ namespace SendTransaction
         std::string destination,
         const std::shared_ptr<Nigel> daemon,
         const std::shared_ptr<SubWallets> subWallets,
-        const std::vector<uint8_t> extraData);
+        const std::vector<uint8_t> extraData,
+        const std::optional<uint64_t> optimizeTarget);
 
     std::tuple<Error, Crypto::Hash, WalletTypes::PreparedTransactionInfo> sendTransactionBasic(
         std::string destination,

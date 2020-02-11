@@ -876,7 +876,16 @@ std::tuple<Error, uint16_t>
 std::tuple<Error, uint16_t>
     ApiDispatcher::sendAdvancedFusionTransaction(const httplib::Request &req, httplib::Response &res, const nlohmann::json &body)
 {
-    const std::string destination = getJsonValue<std::string>(body, "destination");
+    std::string destination;
+
+    if (body.find("destination") != body.end())
+    {
+        destination = getJsonValue<std::string>(body, "destination");
+    }
+    else
+    {
+        destination = m_walletBackend->getPrimaryAddress();
+    }
 
     uint64_t mixin;
 
@@ -910,7 +919,20 @@ std::tuple<Error, uint16_t>
         }
     }
 
-    auto [error, hash] = m_walletBackend->sendFusionTransactionAdvanced(mixin, subWalletsToTakeFrom, destination, extraData);
+    std::optional<uint64_t> optimizeTarget;
+
+    if (body.find("optimizeTarget") != body.end())
+    {
+        optimizeTarget = getJsonValue<uint64_t>(body, "optimizeTarget");
+    }
+
+    auto [error, hash] = m_walletBackend->sendFusionTransactionAdvanced(
+        mixin,
+        subWalletsToTakeFrom,
+        destination,
+        extraData,
+        optimizeTarget
+    );
 
     if (error)
     {

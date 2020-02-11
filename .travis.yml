@@ -42,24 +42,15 @@ matrix:
     - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
     - LABEL="linux-g++-7"
     - STRIP="strip"
-  - os: linux
-    dist: bionic
-    env:
-    - MATRIX_EVAL="CC=aarch64-linux-gnu-gcc && CXX=aarch64-linux-gnu-g++"
-    - LABEL="aarch64"
-    - _DEPLOYABLE="true"
-    - STRIP="aarch64-linux-gnu-strip"
 
 before_install:
 - eval $MATRIX_EVAL
 
 script:
 - eval $MATRIX_EVAL
-- if [[ "$LABEL" == "aarch64" ]]; then source scripts/prep-aarch64.sh ; fi
 - mkdir build && cd build
 - cmake -DARCH=default -DCMAKE_BUILD_TYPE=Release -DSTATIC=true ..
 - make -j2
-- if [[ "$LABEL" != "aarch64" ]]; then ./src/XeniumCryptotest ; fi
 
 before_deploy:
 - if [[ "${TRAVIS_TAG}" == "" ]]; then export TRAVIS_TAG=${TRAVIS_COMMIT} ; fi

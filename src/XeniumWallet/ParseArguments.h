@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <optional>
 #include <config/CryptoNoteConfig.h>
 #include <logger/Logger.h>
 
@@ -32,6 +33,8 @@ struct ZedConfig
 
     /* Use SSL with daemon */
     bool ssl = false;
+
+    std::optional<std::string> loggingFilePath;
 
     unsigned int threads;
 };

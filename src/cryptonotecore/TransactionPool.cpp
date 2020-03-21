@@ -141,6 +141,8 @@ namespace CryptoNote
             pendingTx.paymentId = paymentId;
         }
 
+        std::scoped_lock lock(m_transactionsMutex);
+
         if (transactionHashIndex.count(pendingTx.getTransactionHash()) > 0)
         {
             logger(Logging::DEBUGGING) << "pushTransaction: transaction hash already present in index";
@@ -159,8 +161,24 @@ namespace CryptoNote
         return transactionHashIndex.insert(std::move(pendingTx)).second;
     }
 
+    const std::optional<CachedTransaction> TransactionPool::tryGetTransaction(const Crypto::Hash &hash) const
+    {
+        std::scoped_lock lock(m_transactionsMutex);
+
+        auto it = transactionHashIndex.find(hash);
+
+        if (it != transactionHashIndex.end())
+        {
+            return it->cachedTransaction;
+        }
+
+        return std::nullopt;
+    }
+
     const CachedTransaction &TransactionPool::getTransaction(const Crypto::Hash &hash) const
     {
+        std::scoped_lock lock(m_transactionsMutex);
+
         auto it = transactionHashIndex.find(hash);
         assert(it != transactionHashIndex.end());
 
@@ -169,6 +187,8 @@ namespace CryptoNote
 
     bool TransactionPool::removeTransaction(const Crypto::Hash &hash)
     {
+        std::scoped_lock lock(m_transactionsMutex);
+
         auto it = transactionHashIndex.find(hash);
         if (it == transactionHashIndex.end())
         {
@@ -185,6 +205,8 @@ namespace CryptoNote
 
     size_t TransactionPool::getFusionTransactionCount() const
     {
+        std::scoped_lock lock(m_transactionsMutex);
+
         size_t fusionTransactionCount = 0;
 
         for (const auto &transaction : transactionCostIndex)
@@ -202,11 +224,15 @@ namespace CryptoNote
 
     size_t TransactionPool::getTransactionCount() const
     {
+        std::scoped_lock lock(m_transactionsMutex);
+
         return transactionHashIndex.size();
     }
 
     std::vector<Crypto::Hash> TransactionPool::getTransactionHashes() const
     {
+        std::scoped_lock lock(m_transactionsMutex);
+
         std::vector<Crypto::Hash> hashes;
         for (auto it = transactionCostIndex.begin(); it != transactionCostIndex.end(); ++it)
         {
@@ -218,6 +244,8 @@ namespace CryptoNote
 
     bool TransactionPool::checkIfTransactionPresent(const Crypto::Hash &hash) const
     {
+        std::scoped_lock lock(m_transactionsMutex);
+
         return transactionHashIndex.find(hash) != transactionHashIndex.end();
     }
 
@@ -228,6 +256,8 @@ namespace CryptoNote
 
     std::vector<CachedTransaction> TransactionPool::getPoolTransactions() const
     {
+        std::scoped_lock lock(m_transactionsMutex);
+
         std::vector<CachedTransaction> result;
         result.reserve(transactionCostIndex.size());
 
@@ -242,6 +272,8 @@ namespace CryptoNote
     std::tuple<std::vector<CachedTransaction>, std::vector<CachedTransaction>>
         TransactionPool::getPoolTransactionsForBlockTemplate() const
     {
+        std::scoped_lock lock(m_transactionsMutex);
+
         std::vector<CachedTransaction> regularTransactions;
 
         std::vector<CachedTransaction> fusionTransactions;
@@ -265,6 +297,8 @@ namespace CryptoNote
 
     uint64_t TransactionPool::getTransactionReceiveTime(const Crypto::Hash &hash) const
     {
+        std::scoped_lock lock(m_transactionsMutex);
+
         auto it = transactionHashIndex.find(hash);
         assert(it != transactionHashIndex.end());
 
@@ -273,6 +307,8 @@ namespace CryptoNote
 
     std::vector<Crypto::Hash> TransactionPool::getTransactionHashesByPaymentId(const Crypto::Hash &paymentId) const
     {
+        std::scoped_lock lock(m_transactionsMutex);
+
         boost::optional<Crypto::Hash> p(paymentId);
 
         auto range = paymentIdIndex.equal_range(p);

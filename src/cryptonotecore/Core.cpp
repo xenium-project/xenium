@@ -1491,11 +1491,16 @@ namespace CryptoNote
 
         for (const auto poolTxHash : poolHashes)
         {
-            const auto poolTx = pool.getTransaction(poolTxHash);
+            const auto poolTx = pool.tryGetTransaction(poolTxHash);
 
-            const auto poolTxState = extractSpentOutputs(poolTx);
+            /* Transaction got removed by another thread */
+            if (!poolTx) {
+                continue;
+            }
 
-            auto [mixinSuccess, err] = Mixins::validate({poolTx}, getTopBlockIndex());
+            const auto poolTxState = extractSpentOutputs(*poolTx);
+
+            auto [mixinSuccess, err] = Mixins::validate({*poolTx}, getTopBlockIndex());
 
             bool isValid = true;
 
@@ -1510,7 +1515,7 @@ namespace CryptoNote
                 isValid = false;
             }
             /* If the transaction exceeds the maximum size of a transaction, fail */
-            else if (poolTx.getTransactionBinaryArray().size() > maxTransactionSize)
+            else if (poolTx->getTransactionBinaryArray().size() > maxTransactionSize)
             {
                 isValid = false;
             }
@@ -1620,6 +1625,9 @@ namespace CryptoNote
         rawBlock.block = std::move(rawBlockTemplate);
 
         rawBlock.transactions.reserve(blockTemplate.transactionHashes.size());
+
+        std::scoped_lock lock(m_submitBlockMutex);
+
         for (const auto &transactionHash : blockTemplate.transactionHashes)
         {
             if (!transactionPool->checkIfTransactionPresent(transactionHash))

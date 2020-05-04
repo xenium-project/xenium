@@ -78,18 +78,17 @@ void syncWallet(const std::shared_ptr<WalletBackend> walletBackend)
         for (const auto tx : walletBackend->getTransactionsRange(walletBlockCount, tmpWalletBlockCount))
         {
             /* Don't print out fusion transactions */
-            if (!tx.isFusionTransaction())
-            {
-                std::cout << InformationMsg("\nNew transaction found!\n\n");
+            if (tx.isFusionTransaction()) continue;
 
-                if (tx.totalAmount() < 0)
-                {
-                    printOutgoingTransfer(tx);
-                }
-                else
-                {
-                    printIncomingTransfer(tx);
-                }
+            std::cout << InformationMsg("\nNew transaction found!\n\n");
+
+            if (tx.totalAmount() < 0)
+            {
+                printOutgoingTransfer(tx);
+            }
+            else
+            {
+                printIncomingTransfer(tx);
             }
         }
 
@@ -117,6 +116,6 @@ void syncWallet(const std::shared_ptr<WalletBackend> walletBackend)
             std::cout << WarningMsg(stream.str()) << std::endl;
         }
 
-        std::this_thread::sleep_for(std::chrono::seconds(3));
+        std::this_thread::sleep_for(std::chrono::milliseconds(750));
     }
 }

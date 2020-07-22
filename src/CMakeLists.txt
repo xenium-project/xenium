@@ -43,7 +43,6 @@ file(GLOB_RECURSE WalletApi walletapi/*)
 file(GLOB_RECURSE WalletBackend walletbackend/*)
 file(GLOB_RECURSE WalletService walletservice/*)
 file(GLOB_RECURSE WalletUpgrader walletupgrader/*)
-file(GLOB_RECURSE XeniumWallet-deprecated XeniumWallet-deprecated/*)
 file(GLOB_RECURSE XeniumWallet XeniumWallet/*)
 
 if (MSVC)
@@ -55,7 +54,7 @@ else ()
 endif ()
 
 # Group the files together in IDEs
-source_group("" FILES $${Common} ${Config} ${Crypto} ${CryptoNoteCore} ${CryptoNoteProtocol} ${XeniumDaemon} ${JsonRpcServer} ${Http} ${Logging} ${Logger} ${miner} ${Mnemonics} ${Nigel} ${NodeRpcProxy} ${P2p} ${Rpc} ${Serialization} ${System} ${Transfers} ${Wallet} ${WalletApi} ${WalletBackend} ${WalletService} ${XeniumWallet-deprecated} ${XeniumWallet} ${CryptoTest} ${Errors} ${Utilities} ${WalletUpgrader} ${SubWallets})
+source_group("" FILES $${Common} ${Config} ${Crypto} ${CryptoNoteCore} ${CryptoNoteProtocol} ${XeniumDaemon} ${JsonRpcServer} ${Http} ${Logging} ${Logger} ${miner} ${Mnemonics} ${Nigel} ${NodeRpcProxy} ${P2p} ${Rpc} ${Serialization} ${System} ${Transfers} ${Wallet} ${WalletApi} ${WalletBackend} ${WalletService} ${XeniumWallet} ${CryptoTest} ${Errors} ${Utilities} ${WalletUpgrader} ${SubWallets})
 
 # Define a group of files as a library to link against
 add_library(Common STATIC ${Common})
@@ -110,7 +109,6 @@ add_executable(WalletService ${WalletService} ${PG_SOURCES_OS})
 add_executable(XeniumDaemon ${XeniumDaemon} ${DAEMON_SOURCES_OS})
 add_executable(WalletApi ${WalletApi} ${WALLET_API_SOURCES_OS})
 add_executable(WalletUpgrader ${WalletUpgrader} ${WALLET_UPGRADER_SOURCES_OS})
-add_executable(XeniumWallet-deprecated ${XeniumWallet-deprecated} ${ZED_WALLET_SOURCES_OS})
 add_executable(XeniumWallet ${XeniumWallet} ${ZED_WALLET_SOURCES_OS})
 
 if (MSVC)
@@ -120,7 +118,6 @@ if (MSVC)
     target_link_libraries(XeniumWallet ws2_32 advapi32 crypt32 gdi32 user32)
     target_link_libraries(WalletApi ws2_32 advapi32 crypt32 gdi32 user32)
     target_link_libraries(miner ws2_32 advapi32 crypt32 gdi32 user32)
-    target_link_libraries(XeniumWallet-deprecated ws2_32 advapi32 crypt32 gdi32 user32)
     target_link_libraries(WalletUpgrader ws2_32 advapi32 crypt32 gdi32 user32)
 endif ()
 
@@ -162,7 +159,6 @@ target_link_libraries(WalletApi WalletBackend)
 target_link_libraries(WalletBackend Serialization Mnemonics Nigel cryptopp-static __filesystem Utilities SubWallets Logger Config Wallet)
 target_link_libraries(WalletService JsonRpcServer Wallet Mnemonics Errors)
 target_link_libraries(WalletUpgrader Utilities WalletBackend Common)
-target_link_libraries(XeniumWallet-deprecated Mnemonics Wallet Utilities Errors)
 target_link_libraries(XeniumWallet WalletBackend)
 
 if (OPENSSL_FOUND)
@@ -185,11 +181,10 @@ add_dependencies(XeniumDaemon version)
 add_dependencies(WalletUpgrader version)
 add_dependencies(WalletApi version)
 add_dependencies(WalletService version)
-add_dependencies(XeniumWallet-deprecated version)
+add_dependencies(XeniumWallet version)
 
 # Finally build the binaries
 set_property(TARGET XeniumDaemon PROPERTY OUTPUT_NAME "XeniumDaemon")
-set_property(TARGET XeniumWallet-deprecated PROPERTY OUTPUT_NAME "XeniumWallet-deprecated")
 set_property(TARGET XeniumWallet PROPERTY OUTPUT_NAME "XeniumWallet")
 set_property(TARGET WalletService PROPERTY OUTPUT_NAME "XeniumService-deprecated")
 set_property(TARGET miner PROPERTY OUTPUT_NAME "XeniumMiner")

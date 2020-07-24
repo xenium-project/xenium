@@ -179,6 +179,7 @@ add_dependencies(XeniumDaemon version)
 add_dependencies(WalletUpgrader version)
 add_dependencies(WalletApi version)
 add_dependencies(WalletService version)
+add_dependencies(XeniumWallet version)
 
 # Finally build the binaries
 set_property(TARGET XeniumDaemon PROPERTY OUTPUT_NAME "XeniumDaemon")

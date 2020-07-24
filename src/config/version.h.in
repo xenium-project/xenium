@@ -3,7 +3,7 @@
 
 #define PROJECT_NAME "Xenium"
 #define PROJECT_SITE "https://github.com/xenium-project/xenium"
-#define PROJECT_COPYRIGHT "Copyright 2019, The Xenium Developers"
+#define PROJECT_COPYRIGHT "Copyright 2019-2020, The Xenium Developers"
 #define APP_VER_MAJOR 3
 #define APP_VER_MINOR 2
 #define APP_VER_REV 0

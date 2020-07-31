@@ -264,7 +264,7 @@ namespace CryptoNote
     // This defines the number of versions ahead we must see peers before we start displaying
     // warning messages that we need to upgrade our software.
     const uint8_t  P2P_UPGRADE_WINDOW                        =                2;
-    const size_t   P2P_CONNECTION_MAX_WRITE_BUFFER_SIZE      = 32 * 1024 * 1024; // 32 MB
+    const size_t   P2P_CONNECTION_MAX_WRITE_BUFFER_SIZE      = 64 * 1024 * 1024; // 64 MB
     const uint32_t P2P_DEFAULT_CONNECTIONS_COUNT             =                8;
     const size_t   P2P_DEFAULT_WHITELIST_CONNECTIONS_PERCENT =               70;
     const uint32_t P2P_DEFAULT_HANDSHAKE_INTERVAL            =               60; // seconds
